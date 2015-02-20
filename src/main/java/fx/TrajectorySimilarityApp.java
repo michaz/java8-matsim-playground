@@ -1,0 +1,263 @@
+/*
+ *  *********************************************************************** *
+ *  * project: org.matsim.*
+ *  * StockLineChartApp.java
+ *  *                                                                         *
+ *  * *********************************************************************** *
+ *  *                                                                         *
+ *  * copyright       : (C) 2015 by the members listed in the COPYING, *
+ *  *                   LICENSE and WARRANTY file.                            *
+ *  * email           : info at matsim dot org                                *
+ *  *                                                                         *
+ *  * *********************************************************************** *
+ *  *                                                                         *
+ *  *   This program is free software; you can redistribute it and/or modify  *
+ *  *   it under the terms of the GNU General Public License as published by  *
+ *  *   the Free Software Foundation; either version 2 of the License, or     *
+ *  *   (at your option) any later version.                                   *
+ *  *   See also COPYING, LICENSE and WARRANTY file                           *
+ *  *                                                                         *
+ *  * ***********************************************************************
+ */
+
+package fx;
+
+import javafx.application.Application;
+import javafx.beans.binding.ListBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
+import javafx.stage.Stage;
+import javafx.util.Callback;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math3.ml.distance.EuclideanDistance;
+import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.events.Event;
+import playground.mzilske.cdr.Sighting;
+import playground.mzilske.cdr.Sightings;
+import playground.mzilske.populationsize.ExperimentResource;
+import playground.mzilske.populationsize.MultiRateRunResource;
+import playground.mzilske.populationsize.RegimeResource;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+
+
+/**
+ * A simulated stock line chart.
+ */
+public class TrajectorySimilarityApp extends Application {
+
+    private DistanceCalculator distanceCalculator;
+
+    final DoubleProperty markerTime = new SimpleDoubleProperty();
+
+
+    // 23188441,11163731
+
+    public Parent createContent() {
+        final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
+        final RegimeResource regime = experiment.getRegime("uncongested3");
+        MultiRateRunResource multiRateRun = regime.getMultiRateRun("randomcountlocations100.0");
+        Sightings sightings = multiRateRun.getSightings("5");
+
+        final Map<Id, List<Sighting>> dense = new HashMap<>();
+        final Map<Id, List<Sighting>> sparse = new HashMap<>();
+
+        for (Map.Entry<Id, List<Sighting>> entry : sightings.getSightingsPerPerson().entrySet()) {
+            if (entry.getValue().size() > 20) {
+                dense.put(entry.getKey(), entry.getValue());
+            } else {
+                sparse.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        distanceCalculator = new DistanceCalculator(multiRateRun.getBaseRun().getConfigAndNetwork().getNetwork());
+        ListView<Map.Entry<Id, List<Sighting>>> sparseView = createLeftView(() -> sparse);
+        ListView<Map.Entry<Id, List<Sighting>>> denseView = createRightView(() -> dense, sparseView.getSelectionModel().selectedItemProperty());
+
+        XYChart.Series<Number, Number> sparsePath = new XYChart.Series<>();
+        sparsePath.setName("Sparse Path");
+
+        XYChart.Series<Number, Number> densePath = new XYChart.Series<>();
+        densePath.setName("Dense Path");
+
+        LineChart<Number, Number> chart = new TrajectoryChart();
+        chart.getData().add(sparsePath);
+        chart.getData().add(densePath);
+        chart.getData().add(distanceCalculator.createLocationMarker(new MyBinding2(sparseView.getSelectionModel().selectedItemProperty()), markerTime));
+        chart.getData().add(distanceCalculator.createLocationMarker(new MyBinding2(denseView.getSelectionModel().selectedItemProperty()), markerTime));
+        chart.setOnMouseClicked(click -> {
+            if (click.getClickCount() == 2) {
+                new TrajectoryEnrichmentApp(distanceCalculator, sparseView.getSelectionModel().getSelectedItem().getValue(), denseView.getSelectionModel().getSelectedItem().getValue()).run();
+            }
+        });
+
+        final SplitPane splitPane = new SplitPane();
+        splitPane.getItems().addAll(sparseView, denseView, chart);
+        splitPane.setDividerPositions(0.3, 0.6);
+        sparseView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                Collections.sort(denseView.getItems(), new Comparator<Map.Entry<Id, List<Sighting>>>() {
+                    ConcurrentHashMap<Map.Entry<Id, List<Sighting>>, Double> cache = new ConcurrentHashMap<>();
+
+                    @Override
+                    public int compare(Map.Entry<Id, List<Sighting>> o1, Map.Entry<Id, List<Sighting>> o2) {
+                        return Double.compare(cache.computeIfAbsent(o1, this::euclideanDistance), cache.computeIfAbsent(o2, this::euclideanDistance));
+                    }
+
+                    private double euclideanDistance(Map.Entry<Id, List<Sighting>> o2) {
+                        PolynomialSplineFunction interpolate = distanceCalculator.getInterpolation(o2);
+                        Sighting home = newValue.getValue().get(0);
+                        DoubleStream ysSparse = newValue.getValue().stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distanceCalculator.distance(home, sighting));
+                        DoubleStream ysDense = newValue.getValue().stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> interpolate.value(sighting.getTime()));
+                        return new EuclideanDistance().compute(ysSparse.toArray(), ysDense.toArray());
+                    }
+                });
+            }
+        });
+        sparsePath.dataProperty().bind(new MyBinding(sparseView.getSelectionModel().selectedItemProperty()));
+        densePath.dataProperty().bind(new MyBinding(denseView.getSelectionModel().selectedItemProperty()));
+        return splitPane;
+    }
+
+    static java.util.stream.DoubleStream times(List<Sighting> value) {
+        return value.stream().mapToDouble(Event::getTime);
+    }
+
+
+    private ListView<Map.Entry<Id, List<Sighting>>> createLeftView(Sightings sightings) {
+        final ListView<Map.Entry<Id, List<Sighting>>> listView = new ListView<>();
+        ObservableList<Map.Entry<Id, List<Sighting>>> items = FXCollections.observableArrayList(sightings.getSightingsPerPerson().entrySet());
+        listView.setItems(items);
+        listView.setCellFactory(new Callback<ListView<Map.Entry<Id, List<Sighting>>>, ListCell<Map.Entry<Id, List<Sighting>>>>() {
+            @Override
+            public ListCell<Map.Entry<Id, List<Sighting>>> call(ListView<Map.Entry<Id, List<Sighting>>> param) {
+                return new ListCell<Map.Entry<Id, List<Sighting>>>() {
+                    @Override
+                    protected void updateItem(Map.Entry<Id, List<Sighting>> item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (!empty) {
+                            DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
+                            chart.sparse.setAll(item.getValue());
+                            chart.chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
+                            chart.markerTime.addListener((observable, oldValue, newValue) -> {
+                                if (newValue != null) {
+                                    markerTime.set(newValue.doubleValue());
+                                }
+                            });
+                            setGraphic(chart.chart);
+                        }
+                    }
+                };
+            }
+        });
+        return listView;
+    }
+
+    private ListView<Map.Entry<Id, List<Sighting>>> createRightView(Sightings sightings, ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> selectedSparseTrajectory) {
+        final ListView<Map.Entry<Id, List<Sighting>>> listView = new ListView<>();
+        ObservableList<Map.Entry<Id, List<Sighting>>> items = FXCollections.observableArrayList(sightings.getSightingsPerPerson().entrySet());
+        listView.setItems(items);
+        listView.setCellFactory(new Callback<ListView<Map.Entry<Id, List<Sighting>>>, ListCell<Map.Entry<Id, List<Sighting>>>>() {
+            @Override
+            public ListCell<Map.Entry<Id, List<Sighting>>> call(ListView<Map.Entry<Id, List<Sighting>>> param) {
+                return new ListCell<Map.Entry<Id, List<Sighting>>>() {
+                    @Override
+                    protected void updateItem(Map.Entry<Id, List<Sighting>> item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (!empty) {
+                            DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
+                            chart.sparse.bind(new ObjectBinding<ObservableList<Sighting>>() {
+                                {
+                                    bind(selectedSparseTrajectory);
+                                }
+                                @Override
+                                protected ObservableList<Sighting> computeValue() {
+                                    if (selectedSparseTrajectory.get() != null) {
+                                        return FXCollections.observableList(selectedSparseTrajectory.get().getValue());
+                                    } else {
+                                        return FXCollections.observableArrayList();
+                                    }
+                                }
+                            });
+                            chart.chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
+                            chart.dense.setAll(item.getValue());
+                            chart.markerTime.addListener((observable, oldValue, newValue) -> {
+                                if (newValue != null) {
+                                    markerTime.set(newValue.doubleValue());
+                                }
+                            });
+                            setGraphic(chart.chart);
+                        }
+                    }
+                };
+            }
+        });
+        return listView;
+    }
+
+    class MyBinding extends ObjectBinding<ObservableList<XYChart.Data<Number, Number>>> {
+        private ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> sightings;
+
+        private MyBinding(ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> sightings) {
+            this.sightings = sightings;
+            bind(this.sightings);
+        }
+
+        @Override
+        protected ObservableList<XYChart.Data<Number, Number>> computeValue() {
+            if (sightings.get() == null) {
+                return FXCollections.observableArrayList();
+            } else {
+                List<XYChart.Data<Number, Number>> collect =
+                        sightings.get().getValue().stream()
+                                .map(s -> new XYChart.Data<Number, Number>(distanceCalculator.getCoord(s).getX(), distanceCalculator.getCoord(s).getY())).collect(Collectors.toList());
+                return FXCollections.observableList(collect);
+            }
+        }
+    }
+
+    class MyBinding2 extends ListBinding<Sighting> {
+        private ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> sightings;
+
+        private MyBinding2(ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> sightings) {
+            this.sightings = sightings;
+            bind(this.sightings);
+        }
+
+        @Override
+        protected ObservableList<Sighting> computeValue() {
+            if (sightings.get() == null) {
+                return null;
+            } else {
+                return FXCollections.observableList(sightings.get().getValue());
+            }
+        }
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        primaryStage.setScene(new Scene(createContent()));
+        primaryStage.show();
+    }
+
+    /**
+     * Java main for when running without JavaFX launcher
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
