@@ -22,23 +22,24 @@
 
 package fx;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.util.AffineTransformation;
+import com.vividsolutions.jts.geom.util.AffineTransformationBuilder;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.SplitPane;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.Id;
 import org.matsim.core.utils.geometry.CoordImpl;
-import org.matsim.core.utils.geometry.CoordUtils;
+import org.matsim.core.utils.misc.Time;
 import playground.mzilske.cdr.Sighting;
 
 import java.util.List;
@@ -93,11 +94,55 @@ public class TrajectoryEnrichmentApp implements Runnable {
                 wurst2(cumulativeDistanceChart, chart, i);
             });
         });
+        ListView<Sighting> sparseSightingsListView = new ListView<>();
+        sparseSightingsListView.setCellFactory(l -> new SightingsCell());
+        sparseSightingsListView.itemsProperty().bind(new SimpleListProperty<>(sparse));
+        sparseSightingsListView.setOnMouseClicked(click -> {
+            if (click.getClickCount() == 2) {
+                int firstIndex = sparseSightingsListView.getSelectionModel().getSelectedIndex();
+                if (firstIndex < sparseSightingsListView.getItems().size()-1) {
+                    Sighting a = sparseSightingsListView.getItems().get(firstIndex);
+                    Sighting b = sparseSightingsListView.getItems().get(firstIndex+1);
+                    PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.xs(dense).toArray());
+                    PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.ys(dense).toArray());
+                    if (interpolationX.isValidPoint(a.getTime()) && interpolationY.isValidPoint(a.getTime())
+                        && interpolationX.isValidPoint(b.getTime()) && interpolationY.isValidPoint(b.getTime())) {
+                        Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
+                        Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
+                        Coordinate dest2 = turnedLeftAround(dest0, dest1);
+                        Coordinate src0 = new Coordinate(interpolationX.value(a.getTime()), interpolationY.value(a.getTime()));
+                        Coordinate src1 = new Coordinate(interpolationX.value(b.getTime()), interpolationY.value(b.getTime()));
+                        Coordinate src2 = turnedLeftAround(src0, src1);
+                        AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
+                                .getTransformation();
+                        if (transformation != null) { // is solvable
+                            List<Sighting> newSightings = dense.stream()
+                                    .filter(s -> s.getTime() > a.getTime() && s.getTime() < b.getTime())
+                                    .map(s -> {
+                                        Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
+                                        coordinate = transformation.transform(coordinate, coordinate);
+                                        return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
+                                    }).collect(Collectors.toList());
+                            sparse.addAll(firstIndex+1, newSightings);
+                        }
+                    }
+                }
+            }
+        });
+        ListView<Sighting> denseSightingsListView = new ListView<>();
+        denseSightingsListView.itemsProperty().bind(new SimpleListProperty<>(dense));
+        denseSightingsListView.setCellFactory(l -> new SightingsCell());
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(chart);
         borderPane.setTop(cumulativeDistanceChart.chart);
         borderPane.setBottom(distanceFromHomeChart.chart);
+        borderPane.setRight(sparseSightingsListView);
+        borderPane.setLeft(denseSightingsListView);
         return borderPane;
+    }
+
+    private Coordinate turnedLeftAround(Coordinate source1, Coordinate source2) {
+        return new Coordinate(source2.x - source2.y + source1.y, source2.y + source2.x - source1.x);
     }
 
     private void wurst(DistanceFromHomeChart distanceFromHomeChart, TrajectoryChart chart, int i) {
@@ -158,6 +203,16 @@ public class TrajectoryEnrichmentApp implements Runnable {
                     sightings.stream()
                     .map(s -> new XYChart.Data<Number, Number>(network.getCoord(s).getX(), network.getCoord(s).getY())).collect(Collectors.toList());
             return FXCollections.observableList(collect);
+        }
+    }
+
+    private class SightingsCell extends javafx.scene.control.ListCell<Sighting> {
+        @Override
+        protected void updateItem(Sighting item, boolean empty) {
+            super.updateItem(item, empty);
+            if (!empty) {
+                setText(Time.writeTime(item.getTime()));
+            }
         }
     }
 }
