@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
 public class TrajectoryEnrichmentApp implements Runnable {
 
     private final DistanceCalculator network;
-    private ObservableList<Sighting> sparse;
+    ObservableList<Sighting> sparse;
     private ObservableList<Sighting> dense;
 
     public TrajectoryEnrichmentApp(DistanceCalculator network, List<Sighting> sparse, List<Sighting> dense) {
@@ -100,33 +100,7 @@ public class TrajectoryEnrichmentApp implements Runnable {
         sparseSightingsListView.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
                 int firstIndex = sparseSightingsListView.getSelectionModel().getSelectedIndex();
-                if (firstIndex < sparseSightingsListView.getItems().size()-1) {
-                    Sighting a = sparseSightingsListView.getItems().get(firstIndex);
-                    Sighting b = sparseSightingsListView.getItems().get(firstIndex+1);
-                    PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.xs(dense).toArray());
-                    PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.ys(dense).toArray());
-                    if (interpolationX.isValidPoint(a.getTime()) && interpolationY.isValidPoint(a.getTime())
-                        && interpolationX.isValidPoint(b.getTime()) && interpolationY.isValidPoint(b.getTime())) {
-                        Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
-                        Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
-                        Coordinate dest2 = turnedLeftAround(dest0, dest1);
-                        Coordinate src0 = new Coordinate(interpolationX.value(a.getTime()), interpolationY.value(a.getTime()));
-                        Coordinate src1 = new Coordinate(interpolationX.value(b.getTime()), interpolationY.value(b.getTime()));
-                        Coordinate src2 = turnedLeftAround(src0, src1);
-                        AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
-                                .getTransformation();
-                        if (transformation != null) { // is solvable
-                            List<Sighting> newSightings = dense.stream()
-                                    .filter(s -> s.getTime() > a.getTime() && s.getTime() < b.getTime())
-                                    .map(s -> {
-                                        Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
-                                        coordinate = transformation.transform(coordinate, coordinate);
-                                        return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
-                                    }).collect(Collectors.toList());
-                            sparse.addAll(firstIndex+1, newSightings);
-                        }
-                    }
-                }
+                drehStreck(firstIndex);
             }
         });
         ListView<Sighting> denseSightingsListView = new ListView<>();
@@ -139,6 +113,42 @@ public class TrajectoryEnrichmentApp implements Runnable {
         borderPane.setRight(sparseSightingsListView);
         borderPane.setLeft(denseSightingsListView);
         return borderPane;
+    }
+
+    private void drehStreck(int firstIndex) {
+        if (firstIndex < sparse.size()-1) {
+            Sighting a = sparse.get(firstIndex);
+            Sighting b = sparse.get(firstIndex + 1);
+            PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.xs(dense).toArray());
+            PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.ys(dense).toArray());
+            if (interpolationX.isValidPoint(a.getTime()) && interpolationY.isValidPoint(a.getTime())
+                && interpolationX.isValidPoint(b.getTime()) && interpolationY.isValidPoint(b.getTime())) {
+                Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
+                Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
+                Coordinate dest2 = turnedLeftAround(dest0, dest1);
+                Coordinate src0 = new Coordinate(interpolationX.value(a.getTime()), interpolationY.value(a.getTime()));
+                Coordinate src1 = new Coordinate(interpolationX.value(b.getTime()), interpolationY.value(b.getTime()));
+                Coordinate src2 = turnedLeftAround(src0, src1);
+                AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
+                        .getTransformation();
+                if (transformation != null) { // is solvable
+                    List<Sighting> newSightings = dense.stream()
+                            .filter(s -> s.getTime() > a.getTime() && s.getTime() < b.getTime())
+                            .map(s -> {
+                                Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
+                                coordinate = transformation.transform(coordinate, coordinate);
+                                return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
+                            }).collect(Collectors.toList());
+                    sparse.addAll(firstIndex+1, newSightings);
+                }
+            }
+        }
+    }
+
+    void drehStreckAll() {
+        for (int i=0; i<sparse.size(); i++) {
+            drehStreck(i);
+        }
     }
 
     private Coordinate turnedLeftAround(Coordinate source1, Coordinate source2) {

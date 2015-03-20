@@ -31,6 +31,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.chart.XYChart;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
@@ -38,8 +39,12 @@ import org.matsim.core.network.NetworkImpl;
 import org.matsim.core.utils.geometry.CoordUtils;
 import playground.mzilske.cdr.Sighting;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.DoubleStream;
 
 public class DistanceCalculator {
 
@@ -110,6 +115,25 @@ public class DistanceCalculator {
             }
         });
         return marker;
+    }
+
+    void sortDenseByProximityToSparse(final List<Sighting> sparseTrace, List<Map.Entry<Id, List<Sighting>>> denseTraces) {
+        Collections.sort(denseTraces, new Comparator<Map.Entry<Id, List<Sighting>>>() {
+            ConcurrentHashMap<Map.Entry<Id, List<Sighting>>, Double> cache = new ConcurrentHashMap<>();
+
+            @Override
+            public int compare(Map.Entry<Id, List<Sighting>> o1, Map.Entry<Id, List<Sighting>> o2) {
+                return Double.compare(cache.computeIfAbsent(o1, this::euclideanDistance), cache.computeIfAbsent(o2, this::euclideanDistance));
+            }
+
+            private double euclideanDistance(Map.Entry<Id, List<Sighting>> o2) {
+                PolynomialSplineFunction interpolate = getInterpolation(o2);
+                Sighting home = sparseTrace.get(0);
+                DoubleStream ysSparse = sparseTrace.stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distance(home, sighting));
+                DoubleStream ysDense = sparseTrace.stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> interpolate.value(sighting.getTime()));
+                return new EuclideanDistance().compute(ysSparse.toArray(), ysDense.toArray());
+            }
+        });
     }
 
     private static class BetweenSightings {

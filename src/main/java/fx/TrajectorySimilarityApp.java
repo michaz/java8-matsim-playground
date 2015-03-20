@@ -39,8 +39,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.Event;
 import playground.mzilske.cdr.Sighting;
@@ -50,9 +48,7 @@ import playground.mzilske.populationsize.MultiRateRunResource;
 import playground.mzilske.populationsize.RegimeResource;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 
 /**
@@ -68,13 +64,14 @@ public class TrajectorySimilarityApp extends Application {
     // 23188441,11163731
 
     public Parent createContent() {
+        final Map<Id, List<Sighting>> dense = new HashMap<>();
+        final Map<Id, List<Sighting>> sparse = new HashMap<>();
         final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
         final RegimeResource regime = experiment.getRegime("uncongested3");
         MultiRateRunResource multiRateRun = regime.getMultiRateRun("randomcountlocations100.0");
         Sightings sightings = multiRateRun.getSightings("5");
 
-        final Map<Id, List<Sighting>> dense = new HashMap<>();
-        final Map<Id, List<Sighting>> sparse = new HashMap<>();
+
 
         for (Map.Entry<Id, List<Sighting>> entry : sightings.getSightingsPerPerson().entrySet()) {
             if (entry.getValue().size() > 20) {
@@ -110,22 +107,7 @@ public class TrajectorySimilarityApp extends Application {
         splitPane.setDividerPositions(0.3, 0.6);
         sparseView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                Collections.sort(denseView.getItems(), new Comparator<Map.Entry<Id, List<Sighting>>>() {
-                    ConcurrentHashMap<Map.Entry<Id, List<Sighting>>, Double> cache = new ConcurrentHashMap<>();
-
-                    @Override
-                    public int compare(Map.Entry<Id, List<Sighting>> o1, Map.Entry<Id, List<Sighting>> o2) {
-                        return Double.compare(cache.computeIfAbsent(o1, this::euclideanDistance), cache.computeIfAbsent(o2, this::euclideanDistance));
-                    }
-
-                    private double euclideanDistance(Map.Entry<Id, List<Sighting>> o2) {
-                        PolynomialSplineFunction interpolate = distanceCalculator.getInterpolation(o2);
-                        Sighting home = newValue.getValue().get(0);
-                        DoubleStream ysSparse = newValue.getValue().stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distanceCalculator.distance(home, sighting));
-                        DoubleStream ysDense = newValue.getValue().stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> interpolate.value(sighting.getTime()));
-                        return new EuclideanDistance().compute(ysSparse.toArray(), ysDense.toArray());
-                    }
-                });
+                distanceCalculator.sortDenseByProximityToSparse(newValue.getValue(), denseView.getItems());
             }
         });
         sparsePath.dataProperty().bind(new MyBinding(sparseView.getSelectionModel().selectedItemProperty()));
