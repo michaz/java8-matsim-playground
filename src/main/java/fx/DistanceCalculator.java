@@ -126,11 +126,11 @@ public class DistanceCalculator {
                 return Double.compare(cache.computeIfAbsent(o1, this::euclideanDistance), cache.computeIfAbsent(o2, this::euclideanDistance));
             }
 
-            private double euclideanDistance(Map.Entry<Id, List<Sighting>> o2) {
-                PolynomialSplineFunction interpolate = getInterpolation(o2);
+            private double euclideanDistance(Map.Entry<Id, List<Sighting>> denseTrace) {
+                PolynomialSplineFunction distanceFromHomeInterpolation = getInterpolation(denseTrace);
                 Sighting home = sparseTrace.get(0);
-                DoubleStream ysSparse = sparseTrace.stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distance(home, sighting));
-                DoubleStream ysDense = sparseTrace.stream().filter(sighting -> interpolate.isValidPoint(sighting.getTime())).mapToDouble(sighting -> interpolate.value(sighting.getTime()));
+                DoubleStream ysSparse = sparseTrace.stream().filter(sighting -> distanceFromHomeInterpolation.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distance(home, sighting));
+                DoubleStream ysDense = sparseTrace.stream().filter(sighting -> distanceFromHomeInterpolation.isValidPoint(sighting.getTime())).mapToDouble(sighting -> distanceFromHomeInterpolation.value(sighting.getTime()));
                 return new EuclideanDistance().compute(ysSparse.toArray(), ysDense.toArray());
             }
         });

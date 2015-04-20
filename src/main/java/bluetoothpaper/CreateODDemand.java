@@ -23,7 +23,6 @@
 package bluetoothpaper;
 
 import cadyts.interfaces.defaults.BasicMeasurementLoader;
-import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import javafx.application.Application;
@@ -138,15 +137,15 @@ public class CreateODDemand extends Application {
         final Config config = createConfig();
         final Scenario scenario = createScenario(config);
         final TimedMatrix matrix = createMatrix();
-        final Controler controler1 = createControler(scenario, matrix, matrixGUI);
-        Controler controler = controler1;
+        Controler controler = createControler(scenario, matrix, matrixGUI);
         new Thread(controler::run).start();
     }
 
     private Controler createControler(final Scenario scenario, final TimedMatrix matrix, final MatrixGUI matrixGUI) {
         final Controler controler = new Controler(scenario);
         controler.setOverwriteFiles(true);
-        controler.setScoringFunctionFactory(new CharyparNagelCadytsScoringFunctionFactory());
+        CharyparNagelCadytsScoringFunctionFactory scoringFunctionFactory = new CharyparNagelCadytsScoringFunctionFactory();
+        controler.setScoringFunctionFactory(scoringFunctionFactory);
         controler.setModules(
                 new ControlerDefaultsModule(),
                 new CadytsModule(),
@@ -156,12 +155,12 @@ public class CreateODDemand extends Application {
                 new AbstractModule() {
                     @Override
                     public void install() {
-                        bindToInstance(TimedMatrices.class, () -> Collections.singleton(matrix));
-                        bindToInstance(MatrixGUI.class, matrixGUI);
-                        Multibinder<MeasurementLoader<Link>> measurementLoaderBinder = Multibinder.newSetBinder((Binder) binder(), new TypeLiteral<MeasurementLoader<Link>>() {
+                        bind(TimedMatrices.class).toInstance(() -> Collections.singleton(matrix));
+                        bind(MatrixGUI.class).toInstance(matrixGUI);
+                        Multibinder<MeasurementLoader<Link>> measurementLoaderBinder = Multibinder.newSetBinder(binder(), new TypeLiteral<MeasurementLoader<Link>>() {
                         });
                         measurementLoaderBinder.addBinding().toInstance(calibrator -> {
-                            String measurementFileName = "/Users/michaelzilske/IDEAcheckout/myproject/src/main/resources/bluetoothpaper/multilink-measurements.xml";
+                            String measurementFileName = "/Users/michaelzilske/IDEAcheckout/linked-against-maven-matsim/java8-matsim-playground/src/main/resources/bluetoothpaper/multilink-measurements.xml";
                             new BasicMeasurementLoader<Link>(calibrator) {
                                 @Override
                                 protected Link label2link(String label) {
@@ -169,7 +168,7 @@ public class CreateODDemand extends Application {
                                 }
                             }.load(measurementFileName);
                         });
-                        addControlerListener(MatrixGUIUpdater.class);
+                        addControlerListenerBinding().to(MatrixGUIUpdater.class);
                     }
                 });
         return controler;

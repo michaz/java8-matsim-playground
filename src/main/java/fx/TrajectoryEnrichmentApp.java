@@ -38,6 +38,7 @@ import javafx.stage.Stage;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Coord;
+import org.matsim.api.core.v01.events.Event;
 import org.matsim.core.utils.geometry.CoordImpl;
 import org.matsim.core.utils.misc.Time;
 import playground.mzilske.cdr.Sighting;
@@ -49,6 +50,8 @@ import java.util.stream.IntStream;
 public class TrajectoryEnrichmentApp implements Runnable {
 
     private final DistanceCalculator network;
+    private final double minTime;
+    private final double maxTime;
     ObservableList<Sighting> sparse;
     private ObservableList<Sighting> dense;
 
@@ -56,6 +59,8 @@ public class TrajectoryEnrichmentApp implements Runnable {
         this.network = network;
         this.sparse = FXCollections.observableArrayList(sparse);
         this.dense = FXCollections.observableArrayList(dense);
+        this.minTime = sparse.stream().mapToDouble(Event::getTime).min().getAsDouble();
+        this.maxTime = sparse.stream().mapToDouble(Event::getTime).max().getAsDouble();
     }
 
     @Override
@@ -116,33 +121,46 @@ public class TrajectoryEnrichmentApp implements Runnable {
     }
 
     private void drehStreck(int firstIndex) {
-        if (firstIndex < sparse.size()-1) {
-            Sighting a = sparse.get(firstIndex);
-            Sighting b = sparse.get(firstIndex + 1);
-            PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.xs(dense).toArray());
-            PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(TrajectorySimilarityApp.times(dense).toArray(), network.ys(dense).toArray());
-            if (interpolationX.isValidPoint(a.getTime()) && interpolationY.isValidPoint(a.getTime())
-                && interpolationX.isValidPoint(b.getTime()) && interpolationY.isValidPoint(b.getTime())) {
-                Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
-                Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
-                Coordinate dest2 = turnedLeftAround(dest0, dest1);
-                Coordinate src0 = new Coordinate(interpolationX.value(a.getTime()), interpolationY.value(a.getTime()));
-                Coordinate src1 = new Coordinate(interpolationX.value(b.getTime()), interpolationY.value(b.getTime()));
-                Coordinate src2 = turnedLeftAround(src0, src1);
-                AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
-                        .getTransformation();
-                if (transformation != null) { // is solvable
-                    List<Sighting> newSightings = dense.stream()
-                            .filter(s -> s.getTime() > a.getTime() && s.getTime() < b.getTime())
-                            .map(s -> {
-                                Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
-                                coordinate = transformation.transform(coordinate, coordinate);
-                                return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
-                            }).collect(Collectors.toList());
-                    sparse.addAll(firstIndex+1, newSightings);
-                }
-            }
+        Sighting a = sparse.get(firstIndex);
+        Sighting b = sparse.get((firstIndex + 1) % sparse.size());
+        double[] times = TrajectorySimilarityApp.times(dense).toArray();
+        PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(times, network.xs(dense).toArray());
+        PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(times, network.ys(dense).toArray());
+        AffineTransformation transformation = getAffineTransformation(a, b, interpolationX, interpolationY);
+        List<Sighting> newSightings = dense.stream()
+                .filter(s -> s.getTime() > a.getTime())
+                .filter(s -> s.getTime() < b.getTime() || b.getTime() < a.getTime() /* rollover */)
+                .map(s -> {
+                    Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
+                    coordinate = transformation.transform(coordinate, coordinate);
+                    return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
+                }).collect(Collectors.toList());
+        sparse.addAll(firstIndex+1, newSightings);
+    }
+
+    private AffineTransformation getAffineTransformation(Sighting a, Sighting b, PolynomialSplineFunction interpolationX, PolynomialSplineFunction interpolationY) {
+        Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
+        Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
+        Coordinate dest2 = turnedLeftAround(dest0, dest1);
+        double aTime = Math.max(a.getTime(), interpolationX.getKnots()[0]);
+        double bTime = Math.min(b.getTime(), interpolationX.getKnots()[interpolationX.getN()]);
+        Coordinate src0 = new Coordinate(interpolationX.value(aTime), interpolationY.value(aTime));
+        Coordinate src1 = new Coordinate(interpolationX.value(bTime), interpolationY.value(bTime));
+        Coordinate src2 = turnedLeftAround(src0, src1);
+        AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
+                .getTransformation();
+        if (transformation == null) { // is not solvable - create a translation instead
+            // TODO: Add random rotation?
+            dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
+            dest1 = new Coordinate(dest0.x + 1000, dest0.y + 1000);
+            dest2 = turnedLeftAround(dest0, dest1);
+            src0 = new Coordinate(interpolationX.value(aTime), interpolationY.value(aTime));
+            src1 = new Coordinate(src0.x + 1000, src0.y + 1000);
+            src2 = turnedLeftAround(src0, src1);
+            transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
+                    .getTransformation();
         }
+        return transformation;
     }
 
     void drehStreckAll() {
