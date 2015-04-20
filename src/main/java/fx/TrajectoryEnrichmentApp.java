@@ -142,8 +142,8 @@ public class TrajectoryEnrichmentApp implements Runnable {
         Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
         Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
         Coordinate dest2 = turnedLeftAround(dest0, dest1);
-        double aTime = Math.max(a.getTime(), interpolationX.getKnots()[0]);
-        double bTime = Math.min(b.getTime(), interpolationX.getKnots()[interpolationX.getN()]);
+        double aTime = projectIntoRange(a.getTime(), interpolationX);
+        double bTime = projectIntoRange(b.getTime(), interpolationX);
         Coordinate src0 = new Coordinate(interpolationX.value(aTime), interpolationY.value(aTime));
         Coordinate src1 = new Coordinate(interpolationX.value(bTime), interpolationY.value(bTime));
         Coordinate src2 = turnedLeftAround(src0, src1);
@@ -161,6 +161,16 @@ public class TrajectoryEnrichmentApp implements Runnable {
                     .getTransformation();
         }
         return transformation;
+    }
+
+    private double projectIntoRange(double time, PolynomialSplineFunction interpolationX) {
+        if (time < interpolationX.getKnots()[0]) {
+            return interpolationX.getKnots()[0];
+        } else if (time > interpolationX.getKnots()[interpolationX.getN()]) {
+            return interpolationX.getKnots()[interpolationX.getN()];
+        } else {
+            return time;
+        }
     }
 
     void drehStreckAll() {
