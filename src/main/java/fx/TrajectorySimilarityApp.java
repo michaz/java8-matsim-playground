@@ -46,9 +46,9 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Id;
 import playground.mzilske.cdr.Sighting;
 import playground.mzilske.cdr.Sightings;
-import playground.mzilske.populationsize.ExperimentResource;
-import playground.mzilske.populationsize.MultiRateRunResource;
-import playground.mzilske.populationsize.RegimeResource;
+import populationsize.ExperimentResource;
+import populationsize.MultiRateRunResource;
+import populationsize.RegimeResource;
 
 import java.util.*;
 import java.util.stream.Collectors;
