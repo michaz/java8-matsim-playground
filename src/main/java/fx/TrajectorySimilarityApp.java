@@ -63,6 +63,31 @@ public class TrajectorySimilarityApp extends Application {
 
     final DoubleProperty markerTime = new SimpleDoubleProperty();
 
+    public static XYChart.Series<Number, Number> createLocationMarker(final DistanceCalculator distanceCalculator, final ObservableListValue<Sighting> selectedItemProperty, final DoubleProperty markerTime1) {
+        XYChart.Series<Number, Number> marker = new XYChart.Series<>();
+        marker.dataProperty().bind(new ObjectBinding<ObservableList<XYChart.Data<Number, Number>>>() {
+            {
+                bind(selectedItemProperty, markerTime1);
+            }
+
+            @Override
+            protected ObservableList<XYChart.Data<Number, Number>> computeValue() {
+                ObservableList<XYChart.Data<Number, Number>> result = FXCollections.observableArrayList();
+                if (selectedItemProperty.get() != null) {
+                    ObservableList<Sighting> data = selectedItemProperty.get();
+                    PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(DistanceCalculator.times(data).toArray(), distanceCalculator.xs(data).toArray());
+                    PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(DistanceCalculator.times(data).toArray(), distanceCalculator.ys(data).toArray());
+                    if (interpolationX.isValidPoint(markerTime1.doubleValue()) && interpolationY.isValidPoint(markerTime1.doubleValue())) {
+                        XYChart.Data<Number, Number> markerDataPoint = new XYChart.Data<>(interpolationX.value(markerTime1.doubleValue()), interpolationY.value(markerTime1.doubleValue()));
+                        result.add(markerDataPoint);
+                    }
+                }
+                return result;
+            }
+        });
+        return marker;
+    }
+
 
     // 23188441,11163731
 
@@ -97,8 +122,8 @@ public class TrajectorySimilarityApp extends Application {
         LineChart<Number, Number> chart = new TrajectoryChart();
         chart.getData().add(sparsePath);
         chart.getData().add(densePath);
-        chart.getData().add(distanceCalculator.createLocationMarker(new MyBinding2(sparseView.getSelectionModel().selectedItemProperty()), markerTime));
-        chart.getData().add(distanceCalculator.createLocationMarker(new MyBinding2(denseView.getSelectionModel().selectedItemProperty()), markerTime));
+        chart.getData().add(createLocationMarker(distanceCalculator, new MyBinding2(sparseView.getSelectionModel().selectedItemProperty()), markerTime));
+        chart.getData().add(createLocationMarker(distanceCalculator, new MyBinding2(denseView.getSelectionModel().selectedItemProperty()), markerTime));
         chart.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
                 new TrajectoryEnrichmentApp(distanceCalculator, sparseView.getSelectionModel().getSelectedItem().getValue(), denseView.getSelectionModel().getSelectedItem().getValue()).run();

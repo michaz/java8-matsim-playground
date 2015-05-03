@@ -22,12 +22,6 @@
 
 package enrichtraces;
 
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.value.ObservableListValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.chart.XYChart;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
@@ -91,31 +85,6 @@ public class DistanceCalculator {
 
     PolynomialSplineFunction getInterpolation(Map.Entry<Id, List<Sighting>> o2) {
         return new LinearInterpolator().interpolate(times(o2.getValue()).toArray(), dists(o2.getValue()).toArray());
-    }
-
-    public XYChart.Series<Number, Number> createLocationMarker(final ObservableListValue<Sighting> selectedItemProperty, final DoubleProperty markerTime1) {
-        XYChart.Series<Number, Number> marker = new XYChart.Series<>();
-        marker.dataProperty().bind(new ObjectBinding<ObservableList<XYChart.Data<Number, Number>>>() {
-            {
-                bind(selectedItemProperty, markerTime1);
-            }
-
-            @Override
-            protected ObservableList<XYChart.Data<Number, Number>> computeValue() {
-                ObservableList<XYChart.Data<Number, Number>> result = FXCollections.observableArrayList();
-                if (selectedItemProperty.get() != null) {
-                    ObservableList<Sighting> data = selectedItemProperty.get();
-                    PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(DistanceCalculator.times(data).toArray(), xs(data).toArray());
-                    PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(DistanceCalculator.times(data).toArray(), ys(data).toArray());
-                    if (interpolationX.isValidPoint(markerTime1.doubleValue()) && interpolationY.isValidPoint(markerTime1.doubleValue())) {
-                        XYChart.Data<Number, Number> markerDataPoint = new XYChart.Data<>(interpolationX.value(markerTime1.doubleValue()), interpolationY.value(markerTime1.doubleValue()));
-                        result.add(markerDataPoint);
-                    }
-                }
-                return result;
-            }
-        });
-        return marker;
     }
 
     public void sortDenseByProximityToSparse(final List<Sighting> sparseTrace, List<Map.Entry<Id, List<Sighting>>> denseTraces) {

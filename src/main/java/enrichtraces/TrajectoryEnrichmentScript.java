@@ -1,7 +1,5 @@
-package fx;
+package enrichtraces;
 
-import enrichtraces.DistanceCalculator;
-import enrichtraces.TrajectoryEnricher;
 import org.matsim.api.core.v01.Id;
 import playground.mzilske.cdr.Sighting;
 import playground.mzilske.cdr.Sightings;

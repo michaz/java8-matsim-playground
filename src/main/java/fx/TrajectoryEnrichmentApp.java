@@ -78,8 +78,8 @@ public class TrajectoryEnrichmentApp implements Runnable {
         densePath.setName("Dense Path");
         chart.getData().add(sparsePath);
         chart.getData().add(densePath);
-        chart.getData().add(network.createLocationMarker(new SimpleListProperty<>(sparse), distanceFromHomeChart.markerTime));
-        chart.getData().add(network.createLocationMarker(new SimpleListProperty<>(dense), distanceFromHomeChart.markerTime));
+        chart.getData().add(TrajectorySimilarityApp.createLocationMarker(network, new SimpleListProperty<>(sparse), distanceFromHomeChart.markerTime));
+        chart.getData().add(TrajectorySimilarityApp.createLocationMarker(network, new SimpleListProperty<>(dense), distanceFromHomeChart.markerTime));
         sparsePath.dataProperty().bind(new MyBinding(sparse));
         densePath.dataProperty().bind(new MyBinding(dense));
         IntStream.range(0, densePath.getData().size()).forEach(i -> {
