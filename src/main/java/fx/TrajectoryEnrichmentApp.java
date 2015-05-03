@@ -22,9 +22,8 @@
 
 package fx;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.util.AffineTransformation;
-import com.vividsolutions.jts.geom.util.AffineTransformationBuilder;
+import enrichtraces.DistanceCalculator;
+import enrichtraces.TrajectoryEnricher;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -35,10 +34,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
-import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Coord;
-import org.matsim.api.core.v01.events.Event;
 import org.matsim.core.utils.geometry.CoordImpl;
 import org.matsim.core.utils.misc.Time;
 import playground.mzilske.cdr.Sighting;
@@ -50,17 +46,15 @@ import java.util.stream.IntStream;
 public class TrajectoryEnrichmentApp implements Runnable {
 
     private final DistanceCalculator network;
-    private final double minTime;
-    private final double maxTime;
     ObservableList<Sighting> sparse;
     private ObservableList<Sighting> dense;
+    private final TrajectoryEnricher trajectoryEnricher;
 
     public TrajectoryEnrichmentApp(DistanceCalculator network, List<Sighting> sparse, List<Sighting> dense) {
         this.network = network;
         this.sparse = FXCollections.observableArrayList(sparse);
         this.dense = FXCollections.observableArrayList(dense);
-        this.minTime = sparse.stream().mapToDouble(Event::getTime).min().getAsDouble();
-        this.maxTime = sparse.stream().mapToDouble(Event::getTime).max().getAsDouble();
+        trajectoryEnricher = new TrajectoryEnricher(network, this.sparse, this.dense);
     }
 
     @Override
@@ -105,7 +99,7 @@ public class TrajectoryEnrichmentApp implements Runnable {
         sparseSightingsListView.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
                 int firstIndex = sparseSightingsListView.getSelectionModel().getSelectedIndex();
-                drehStreck(firstIndex);
+                trajectoryEnricher.drehStreck(firstIndex);
             }
         });
         ListView<Sighting> denseSightingsListView = new ListView<>();
@@ -120,68 +114,6 @@ public class TrajectoryEnrichmentApp implements Runnable {
         return borderPane;
     }
 
-    private void drehStreck(int firstIndex) {
-        Sighting a = sparse.get(firstIndex);
-        Sighting b = sparse.get((firstIndex + 1) % sparse.size());
-        double[] times = TrajectorySimilarityApp.times(dense).toArray();
-        PolynomialSplineFunction interpolationX = new LinearInterpolator().interpolate(times, network.xs(dense).toArray());
-        PolynomialSplineFunction interpolationY = new LinearInterpolator().interpolate(times, network.ys(dense).toArray());
-        AffineTransformation transformation = getAffineTransformation(a, b, interpolationX, interpolationY);
-        List<Sighting> newSightings = dense.stream()
-                .filter(s -> s.getTime() > a.getTime())
-                .filter(s -> s.getTime() < b.getTime() || b.getTime() < a.getTime() /* rollover */)
-                .map(s -> {
-                    Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
-                    coordinate = transformation.transform(coordinate, coordinate);
-                    return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
-                }).collect(Collectors.toList());
-        sparse.addAll(firstIndex+1, newSightings);
-    }
-
-    private AffineTransformation getAffineTransformation(Sighting a, Sighting b, PolynomialSplineFunction interpolationX, PolynomialSplineFunction interpolationY) {
-        Coordinate dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
-        Coordinate dest1 = new Coordinate(network.getCoord(b).getX(), network.getCoord(b).getY());
-        Coordinate dest2 = turnedLeftAround(dest0, dest1);
-        double aTime = projectIntoRange(a.getTime(), interpolationX);
-        double bTime = projectIntoRange(b.getTime(), interpolationX);
-        Coordinate src0 = new Coordinate(interpolationX.value(aTime), interpolationY.value(aTime));
-        Coordinate src1 = new Coordinate(interpolationX.value(bTime), interpolationY.value(bTime));
-        Coordinate src2 = turnedLeftAround(src0, src1);
-        AffineTransformation transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
-                .getTransformation();
-        if (transformation == null) { // is not solvable - create a translation instead
-            // TODO: Add random rotation?
-            dest0 = new Coordinate(network.getCoord(a).getX(), network.getCoord(a).getY());
-            dest1 = new Coordinate(dest0.x + 1000, dest0.y + 1000);
-            dest2 = turnedLeftAround(dest0, dest1);
-            src0 = new Coordinate(interpolationX.value(aTime), interpolationY.value(aTime));
-            src1 = new Coordinate(src0.x + 1000, src0.y + 1000);
-            src2 = turnedLeftAround(src0, src1);
-            transformation = new AffineTransformationBuilder(src0, src1, src2, dest0, dest1, dest2)
-                    .getTransformation();
-        }
-        return transformation;
-    }
-
-    private double projectIntoRange(double time, PolynomialSplineFunction interpolationX) {
-        if (time < interpolationX.getKnots()[0]) {
-            return interpolationX.getKnots()[0];
-        } else if (time > interpolationX.getKnots()[interpolationX.getN()]) {
-            return interpolationX.getKnots()[interpolationX.getN()];
-        } else {
-            return time;
-        }
-    }
-
-    void drehStreckAll() {
-        for (int i=0; i<sparse.size(); i++) {
-            drehStreck(i);
-        }
-    }
-
-    private Coordinate turnedLeftAround(Coordinate source1, Coordinate source2) {
-        return new Coordinate(source2.x - source2.y + source1.y, source2.y + source2.x - source1.x);
-    }
 
     private void wurst(DistanceFromHomeChart distanceFromHomeChart, TrajectoryChart chart, int i) {
         double distanceFromHome = distanceFromHomeChart.denseXYData.get().get(i).YValueProperty().get().doubleValue();

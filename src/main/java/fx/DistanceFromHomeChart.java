@@ -22,6 +22,7 @@
 
 package fx;
 
+import enrichtraces.DistanceCalculator;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;

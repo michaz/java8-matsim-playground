@@ -1,5 +1,7 @@
 package fx;
 
+import enrichtraces.DistanceCalculator;
+import enrichtraces.TrajectoryEnricher;
 import org.matsim.api.core.v01.Id;
 import playground.mzilske.cdr.Sighting;
 import playground.mzilske.cdr.Sightings;
@@ -51,17 +53,17 @@ public class TrajectoryEnrichmentScript {
             sparse.values().forEach(s -> {
                 distanceCalculator.sortDenseByProximityToSparse(s, denseList);
                 Map.Entry<Id, List<Sighting>> best = denseList.get(0);
-                TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, s, best.getValue());
-                trajectoryEnrichmentApp.drehStreckAll();
-                distanceCalculator.distance(trajectoryEnrichmentApp.sparse);
+                List<Sighting> enriched = new ArrayList<>(s);
+                TrajectoryEnricher trajectoryEnricher = new TrajectoryEnricher(distanceCalculator, enriched, best.getValue());
+                trajectoryEnricher.drehStreckAll();
                 try {
-                    fw2.append(String.format("%f\t%f\t%f\n", distanceCalculator.distance(s), distanceCalculator.distance(best.getValue()), distanceCalculator.distance(trajectoryEnrichmentApp.sparse)));
+                    fw2.append(String.format("%f\t%f\t%f\n", distanceCalculator.distance(s), distanceCalculator.distance(best.getValue()), distanceCalculator.distance(enriched)));
                     fw2.flush();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
                 try {
-                    fw.append(String.format("%f\texpanded\n",distanceCalculator.distance(trajectoryEnrichmentApp.sparse)));
+                    fw.append(String.format("%f\texpanded\n",distanceCalculator.distance(enriched)));
                     fw.flush();
                 } catch (IOException e) {
                     throw new RuntimeException(e);

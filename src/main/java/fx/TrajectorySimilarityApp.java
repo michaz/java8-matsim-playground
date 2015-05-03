@@ -22,12 +22,14 @@
 
 package fx;
 
+import enrichtraces.DistanceCalculator;
 import javafx.application.Application;
 import javafx.beans.binding.ListBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ObservableListValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
@@ -39,8 +41,9 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.events.Event;
 import playground.mzilske.cdr.Sighting;
 import playground.mzilske.cdr.Sightings;
 import playground.mzilske.populationsize.ExperimentResource;
@@ -115,9 +118,7 @@ public class TrajectorySimilarityApp extends Application {
         return splitPane;
     }
 
-    static java.util.stream.DoubleStream times(List<Sighting> value) {
-        return value.stream().mapToDouble(Event::getTime);
-    }
+
 
 
     private ListView<Map.Entry<Id, List<Sighting>>> createLeftView(Sightings sightings) {
@@ -166,6 +167,7 @@ public class TrajectorySimilarityApp extends Application {
                                 {
                                     bind(selectedSparseTrajectory);
                                 }
+
                                 @Override
                                 protected ObservableList<Sighting> computeValue() {
                                     if (selectedSparseTrajectory.get() != null) {
@@ -190,6 +192,8 @@ public class TrajectorySimilarityApp extends Application {
         });
         return listView;
     }
+
+
 
     class MyBinding extends ObjectBinding<ObservableList<XYChart.Data<Number, Number>>> {
         private ReadOnlyObjectProperty<Map.Entry<Id, List<Sighting>>> sightings;
