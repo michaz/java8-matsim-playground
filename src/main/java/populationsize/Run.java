@@ -34,8 +34,8 @@ public class Run {
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("5", 3, 1.0);
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("0", 3, 1.0);
 
-        congested.getMultiRateRun("randomcountlocations100.0").simulateRate("5", 3, 100.0);
-        congested.getMultiRateRun("randomcountlocations100.0").simulateRate("0", 3, 100.0);
+        congested.getMultiRateRun("trajectoryenrichment100.0").simulateRate("5", 1, 100.0);
+//        congested.getMultiRateRun("randomcountlocations100.0").simulateRate("0", 3, 100.0);
 
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("5", 3, 100.0);
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("0", 3, 100.0);

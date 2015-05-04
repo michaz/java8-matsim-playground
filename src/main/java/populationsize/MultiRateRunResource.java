@@ -22,6 +22,7 @@
 
 package populationsize;
 
+import enrichtraces.TrajectoryReEnricherModule;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Id;
@@ -169,7 +170,7 @@ public class MultiRateRunResource {
                 new ControlerDefaultsModule(),
                 new CadytsModule(),
                 new ClonesModule(),
-                new TrajectoryReRealizerModule(),
+                new TrajectoryReEnricherModule(),
                 new AbstractModule() {
                     @Override
                     public void install() {
@@ -213,7 +214,7 @@ public class MultiRateRunResource {
 
     private Config phoneConfig(int cloneFactor) {
         Config config = ConfigUtils.createConfig();
-
+        config.global().setNumberOfThreads(8);
         config.controler().setLastIteration(LAST_ITERATION);
         ActivityParams sightingParam = new ActivityParams("sighting");
         sightingParam.setTypicalDuration(30.0 * 60);
@@ -250,7 +251,8 @@ public class MultiRateRunResource {
 //        }
         {
             StrategyConfigGroup.StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(2, StrategySettings.class));
-            stratSets.setStrategyName("ReRealize");
+//            stratSets.setStrategyName("ReRealize");
+            stratSets.setStrategyName("ReEnrich");
             stratSets.setWeight(0.3 / cloneFactor);
             stratSets.setDisableAfter((int) (LAST_ITERATION * 0.8));
             config.strategy().addStrategySettings(stratSets);
