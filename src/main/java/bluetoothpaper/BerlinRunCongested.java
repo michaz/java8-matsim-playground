@@ -39,33 +39,8 @@ public class BerlinRunCongested implements Runnable {
 	@Override
 	public void run() {
         Scenario scenario = getScenario();
-		
-
-		
 		final Controler controller = new Controler(scenario);
-//        controller.setMobsimFactory(new MobsimFactory() {
-//            @Override
-//            public Mobsim createMobsim(Scenario sc, EventsManager eventsManager) {
-//                return null;
-//            }
-//        });
-//        controller.addControlerListener(new StartupListener() {
-//            @Override
-//            public void notifyStartup(StartupEvent event) {
-//                throw new RuntimeException();
-//            }
-//        });
-//        controller.addControlerListener(new ShutdownListener() {
-//
-//            @Override
-//            public void notifyShutdown(ShutdownEvent event) {
-//                throw new RuntimeException();
-//            }
-//        });
-        controller.setOverwriteFiles(true);
 		controller.run();
-		
-
 	}
 
     static Scenario getScenario() {

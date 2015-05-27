@@ -143,7 +143,6 @@ public class CreateODDemand extends Application {
 
     private Controler createControler(final Scenario scenario, final TimedMatrix matrix, final MatrixGUI matrixGUI) {
         final Controler controler = new Controler(scenario);
-        controler.setOverwriteFiles(true);
         CharyparNagelCadytsScoringFunctionFactory scoringFunctionFactory = new CharyparNagelCadytsScoringFunctionFactory();
         controler.setScoringFunctionFactory(scoringFunctionFactory);
         controler.setModules(

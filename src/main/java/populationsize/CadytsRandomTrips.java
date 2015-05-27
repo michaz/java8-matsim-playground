@@ -171,7 +171,6 @@ public class CadytsRandomTrips {
 
 
         Controler controler = new Controler(scenario);
-        controler.setOverwriteFiles(true);
         controler.setModules(
                 new ControlerDefaultsModule(),
                 new CadytsModule(),

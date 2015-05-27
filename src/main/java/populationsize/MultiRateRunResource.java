@@ -66,7 +66,7 @@ import java.util.*;
 
 public class MultiRateRunResource {
 
-    private static final int LAST_ITERATION = 100;
+    private static final int LAST_ITERATION = 10;
     private final String WD;
 
     private final String regime;
@@ -165,19 +165,21 @@ public class MultiRateRunResource {
         clonesConfig.setCloneFactor(cloneFactor);
 
         Controler controler = new Controler(scenario);
-        controler.setOverwriteFiles(true);
-        controler.setModules(
-                new ControlerDefaultsModule(),
-                new CadytsModule(),
-                new ClonesModule(),
-                new TrajectoryReEnricherModule(),
-                new AbstractModule() {
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                install(new CadytsModule());
+                install(new ClonesModule());
+                install(new TrajectoryReEnricherModule());
+                install(new AbstractModule() {
                     @Override
                     public void install() {
                         bind(ZoneTracker.LinkToZoneResolver.class).toInstance(linkToZoneResolver);
                         bind(Sightings.class).toInstance(allSightings);
                     }
                 });
+            }
+        });
         CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
         factory.setCadytsweight(cadytsWeight);
         controler.setScoringFunctionFactory(factory);
@@ -253,7 +255,7 @@ public class MultiRateRunResource {
             StrategyConfigGroup.StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(2, StrategySettings.class));
 //            stratSets.setStrategyName("ReRealize");
             stratSets.setStrategyName("ReEnrich");
-            stratSets.setWeight(0.3 / cloneFactor);
+            stratSets.setWeight(0.1 / cloneFactor);
             stratSets.setDisableAfter((int) (LAST_ITERATION * 0.8));
             config.strategy().addStrategySettings(stratSets);
         }
