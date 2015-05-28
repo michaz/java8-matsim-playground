@@ -50,7 +50,7 @@ class TrajectoryReEnricher extends AbstractMultithreadedModule {
     private CloneService cloneService;
     final Map<Id, List<Sighting>> dense;
     private final Predicate<List<Sighting>> isDense = trace -> trace.size() > 20;
-
+    static final double SAMPLE=0.1;
 
     TrajectoryReEnricher(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
         super(scenario.getConfig().global());
@@ -75,7 +75,7 @@ class TrajectoryReEnricher extends AbstractMultithreadedModule {
                 newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, originalTrace);
             } else {
                 ArrayList<Sighting> newTrace = new ArrayList<>(originalTrace);
-                ArrayList<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet());
+                List<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet()).subList(0, (int) (dense.entrySet().size() * SAMPLE));
                 distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces);
                 List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
                 new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckAll();

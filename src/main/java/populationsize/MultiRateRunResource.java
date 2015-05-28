@@ -40,10 +40,14 @@ import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.controler.ControlerDefaultsModule;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.controler.listener.IterationStartsListener;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
+import org.matsim.core.replanning.PlanStrategy;
+import org.matsim.core.replanning.ReplanningContext;
 import org.matsim.core.scenario.ScenarioImpl;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
@@ -66,7 +70,7 @@ import java.util.*;
 
 public class MultiRateRunResource {
 
-    private static final int LAST_ITERATION = 10;
+    private static final int LAST_ITERATION = 100;
     private final String WD;
 
     private final String regime;
@@ -141,7 +145,7 @@ public class MultiRateRunResource {
 
     public void simulateRate(String rate, final int cloneFactor, final double cadytsWeight) {
         final Config config = phoneConfig(cloneFactor);
-
+        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
         config.controler().setOutputDirectory(WD + "/rates/" + rate + "/" + cloneFactor);
 
         Scenario baseScenario = getBaseRun().getConfigAndNetwork();
@@ -176,6 +180,14 @@ public class MultiRateRunResource {
                     public void install() {
                         bind(ZoneTracker.LinkToZoneResolver.class).toInstance(linkToZoneResolver);
                         bind(Sightings.class).toInstance(allSightings);
+                    }
+                });
+                addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
+                    if (startupEvent.getIteration() == 0) {
+                        PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrich");
+                        reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
+                        scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
+                        reEnrich.finish();
                     }
                 });
             }

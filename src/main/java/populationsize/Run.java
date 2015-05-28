@@ -28,13 +28,13 @@ public class Run {
 	public static void main(String[] args) {
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource congested = experiment.getRegime("uncongested3");
-        congested.getMultiRateRun("neighbors").twoRates("5");
+//        congested.getMultiRateRun("neighbors").twoRates("5");
 //        congested.getMultiRateRun("randomcountlocations").twoRates("0");
 
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("5", 3, 1.0);
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("0", 3, 1.0);
 
-//        congested.getMultiRateRun("trajectoryenrichment100.0").simulateRate("5", 1, 100.0);
+        congested.getMultiRateRun("trajectoryenrichment100.0").simulateRate("5", 1, 100.0);
 //        congested.getMultiRateRun("randomcountlocations100.0").simulateRate("0", 3, 100.0);
 
 //        congested.getMultiRateRun("randomcountlocations").simulateRate("5", 3, 100.0);
