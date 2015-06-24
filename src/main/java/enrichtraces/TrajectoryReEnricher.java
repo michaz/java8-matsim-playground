@@ -35,10 +35,7 @@ import playground.mzilske.cdr.Sightings;
 import playground.mzilske.cdr.ZoneTracker;
 import playground.mzilske.clones.CloneService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 class TrajectoryReEnricher extends AbstractMultithreadedModule {
@@ -66,6 +63,7 @@ class TrajectoryReEnricher extends AbstractMultithreadedModule {
 
     @Override
     public PlanAlgorithm getPlanAlgoInstance() {
+        List<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet());
         return plan -> {
             Id personId = plan.getPerson().getId();
             Id originalPersonId = cloneService.resolveParentId(personId);
@@ -75,10 +73,11 @@ class TrajectoryReEnricher extends AbstractMultithreadedModule {
                 newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, originalTrace);
             } else {
                 ArrayList<Sighting> newTrace = new ArrayList<>(originalTrace);
-                List<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet()).subList(0, (int) (dense.entrySet().size() * SAMPLE));
-                distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces);
+                Collections.shuffle(denseTraces);
+                distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces.subList(0, (int) (denseTraces.size() * SAMPLE)));
                 List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
-                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckAll();
+//                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckAll();
+                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
                 newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, newTrace);
             }
             plan.getPlanElements().clear();

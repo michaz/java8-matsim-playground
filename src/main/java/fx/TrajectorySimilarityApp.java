@@ -88,15 +88,12 @@ public class TrajectorySimilarityApp extends Application {
         return marker;
     }
 
-
-    // 23188441,11163731
-
     public Parent createContent() {
         final Map<Id, List<Sighting>> dense = new HashMap<>();
         final Map<Id, List<Sighting>> sparse = new HashMap<>();
         final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
         final RegimeResource regime = experiment.getRegime("uncongested3");
-        MultiRateRunResource multiRateRun = regime.getMultiRateRun("randomcountlocations100.0");
+        MultiRateRunResource multiRateRun = regime.getMultiRateRun("realcountlocations100.0");
         Sightings sightings = multiRateRun.getSightings("5");
 
 

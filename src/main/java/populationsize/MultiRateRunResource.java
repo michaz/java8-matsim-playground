@@ -100,7 +100,9 @@ public class MultiRateRunResource {
             rates.add("5");
             return rates;
         } else {
-            throw new RuntimeException("Unknown alternative.");
+            final List<String> rates = new ArrayList<>();
+            rates.add("5");
+            return rates;
         }
     }
 
@@ -184,6 +186,7 @@ public class MultiRateRunResource {
                 });
                 addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
                     if (startupEvent.getIteration() == 0) {
+                        scenario.getPopulation().getPersons().values().forEach(p -> p.getPlans().clear());
                         PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrich");
                         reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
                         scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
@@ -379,12 +382,12 @@ public class MultiRateRunResource {
                     final Map<Id, Double> baseKm = PowerPlans.travelledDistancePerPerson(baseScenario.getPopulation(), baseScenario.getNetwork());
                     dumpnonzero(pw, rate, "truth", baseKm, baseScenario);
                     {
-                        Scenario scenario = getRateRun(rate, "3").getOutputScenario();
+                        Scenario scenario = getRateRun(rate, "1").getOutputScenario();
                         Map<Id, Double> km = PowerPlans.travelledDistancePerPerson(scenario.getPopulation(), baseScenario.getNetwork());
                         dumpnonzero(pw, rate, "calibrated", km, baseScenario);
                     }
                     {
-                        ArrayList<Person> it0 = new ArrayList<>(getRateRun(rate, "3").getIteration(0).getPlans().getPersons().values());
+                        ArrayList<Person> it0 = new ArrayList<>(getRateRun(rate, "1").getIteration(0).getPlans().getPersons().values());
                         for (Iterator<Person> i = it0.iterator(); i.hasNext(); ) {
                             Person person = i.next();
                             if (person.getId().toString().startsWith("I")) {

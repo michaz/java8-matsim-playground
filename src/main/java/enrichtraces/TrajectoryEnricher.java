@@ -29,6 +29,15 @@ public class TrajectoryEnricher {
         }
     }
 
+    public void drehStreckSome() {
+        double d = Math.random();
+        for (int i=0; i<sparse.size(); i++) {
+            if (Math.random() < d) {
+                drehStreck(i);
+            }
+        }
+    }
+
     public void drehStreck(int firstIndex) {
         Sighting a = sparse.get(firstIndex);
         Sighting b = sparse.get((firstIndex + 1) % sparse.size());
@@ -85,7 +94,6 @@ public class TrajectoryEnricher {
     private Coordinate turnedLeftAround(Coordinate source1, Coordinate source2) {
         return new Coordinate(source2.x - source2.y + source1.y, source2.y + source2.x - source1.x);
     }
-
 
 
 
