@@ -33,9 +33,8 @@ import org.matsim.core.population.MatsimPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
 import org.matsim.vehicles.VehicleReaderV1;
-import playground.mzilske.ant2014.FileIO;
-import playground.mzilske.ant2014.IterationResource;
-import playground.mzilske.ant2014.StreamingOutput;
+import util.FileIO;
+import util.StreamingOutput;
 
 import java.io.IOException;
 import java.io.PrintWriter;

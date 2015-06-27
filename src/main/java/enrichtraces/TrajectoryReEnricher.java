@@ -22,6 +22,11 @@
 
 package enrichtraces;
 
+import cdr.PopulationFromSightings;
+import cdr.Sighting;
+import cdr.Sightings;
+import cdr.ZoneTracker;
+import clones.CloneService;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
@@ -29,11 +34,6 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.population.PlanImpl;
 import org.matsim.core.replanning.modules.AbstractMultithreadedModule;
 import org.matsim.population.algorithms.PlanAlgorithm;
-import playground.mzilske.cdr.PopulationFromSightings;
-import playground.mzilske.cdr.Sighting;
-import playground.mzilske.cdr.Sightings;
-import playground.mzilske.cdr.ZoneTracker;
-import playground.mzilske.clones.CloneService;
 
 import java.util.*;
 import java.util.function.Predicate;

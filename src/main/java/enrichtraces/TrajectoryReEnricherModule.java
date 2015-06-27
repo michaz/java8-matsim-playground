@@ -22,15 +22,15 @@
 
 package enrichtraces;
 
+import cdr.Sightings;
+import cdr.ZoneTracker;
+import clones.CloneService;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.PlanStrategyImpl;
 import org.matsim.core.replanning.modules.ReRoute;
 import org.matsim.core.replanning.selectors.RandomPlanSelector;
-import playground.mzilske.cdr.Sightings;
-import playground.mzilske.cdr.ZoneTracker;
-import playground.mzilske.clones.CloneService;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

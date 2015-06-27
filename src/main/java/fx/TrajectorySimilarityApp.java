@@ -22,6 +22,8 @@
 
 package fx;
 
+import cdr.Sighting;
+import cdr.Sightings;
 import enrichtraces.DistanceCalculator;
 import javafx.application.Application;
 import javafx.beans.binding.ListBinding;
@@ -44,13 +46,13 @@ import javafx.util.Callback;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Id;
-import playground.mzilske.cdr.Sighting;
-import playground.mzilske.cdr.Sightings;
 import populationsize.ExperimentResource;
 import populationsize.MultiRateRunResource;
 import populationsize.RegimeResource;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 

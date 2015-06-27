@@ -22,14 +22,14 @@
 
 package populationsize;
 
+import cdr.PowerPlans;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
-import playground.mzilske.ant2014.FileIO;
-import playground.mzilske.ant2014.StreamingOutput;
-import playground.mzilske.cdr.PowerPlans;
+import util.FileIO;
+import util.StreamingOutput;
 
 import java.io.IOException;
 import java.io.PrintWriter;

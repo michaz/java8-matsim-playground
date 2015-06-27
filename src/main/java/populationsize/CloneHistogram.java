@@ -28,7 +28,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.replanning.selectors.ExpBetaPlanSelector;
-import playground.mzilske.ant2014.StreamingOutput;
+import util.StreamingOutput;
 
 import java.io.IOException;
 import java.io.PrintWriter;

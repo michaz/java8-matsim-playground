@@ -1,12 +1,12 @@
 package enrichtraces;
 
+import cdr.Sighting;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.util.AffineTransformation;
 import com.vividsolutions.jts.geom.util.AffineTransformationBuilder;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.core.utils.geometry.CoordImpl;
-import playground.mzilske.cdr.Sighting;
 
 import java.util.List;
 import java.util.stream.Collectors;

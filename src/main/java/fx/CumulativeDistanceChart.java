@@ -22,6 +22,7 @@
 
 package fx;
 
+import cdr.Sighting;
 import enrichtraces.DistanceCalculator;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.*;
@@ -30,7 +31,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import playground.mzilske.cdr.Sighting;
 
 public class CumulativeDistanceChart {
 

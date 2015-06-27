@@ -22,6 +22,7 @@
 
 package fx;
 
+import cdr.Sighting;
 import enrichtraces.DistanceCalculator;
 import enrichtraces.TrajectoryEnricher;
 import javafx.beans.binding.ObjectBinding;
@@ -34,14 +35,10 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import org.matsim.api.core.v01.Coord;
-import org.matsim.core.utils.geometry.CoordImpl;
 import org.matsim.core.utils.misc.Time;
-import playground.mzilske.cdr.Sighting;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class TrajectoryEnrichmentApp implements Runnable {
 

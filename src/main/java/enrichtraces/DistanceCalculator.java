@@ -22,6 +22,7 @@
 
 package enrichtraces;
 
+import cdr.Sighting;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
@@ -31,7 +32,6 @@ import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.core.network.NetworkImpl;
 import org.matsim.core.utils.geometry.CoordUtils;
-import playground.mzilske.cdr.Sighting;
 
 import java.util.Collections;
 import java.util.Comparator;

@@ -1,5 +1,7 @@
 package enrichtraces;
 
+import cdr.Sighting;
+import cdr.Sightings;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -9,8 +11,6 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.population.MatsimPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
-import playground.mzilske.cdr.Sighting;
-import playground.mzilske.cdr.Sightings;
 import populationsize.ExperimentResource;
 import populationsize.MultiRateRunResource;
 import populationsize.RegimeResource;

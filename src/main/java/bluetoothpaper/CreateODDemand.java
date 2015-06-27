@@ -22,7 +22,12 @@
 
 package bluetoothpaper;
 
+import cadyts.CadytsModule;
+import cadyts.MeasurementLoader;
 import cadyts.interfaces.defaults.BasicMeasurementLoader;
+import cdr.TrajectoryReRealizerModule;
+import clones.ClonesConfigGroup;
+import clones.ClonesModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import javafx.application.Application;
@@ -35,6 +40,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import matrices.MatricesModule;
+import matrices.TimedMatrices;
+import matrices.TimedMatrix;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
@@ -54,14 +62,6 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.counts.Counts;
 import org.matsim.matrices.Entry;
 import org.matsim.matrices.Matrix;
-import playground.mzilske.cadyts.CadytsModule;
-import playground.mzilske.cadyts.MeasurementLoader;
-import playground.mzilske.cdr.TrajectoryReRealizerModule;
-import playground.mzilske.clones.ClonesConfigGroup;
-import playground.mzilske.clones.ClonesModule;
-import playground.mzilske.matrices.MatricesModule;
-import playground.mzilske.matrices.TimedMatrices;
-import playground.mzilske.matrices.TimedMatrix;
 
 import javax.inject.Inject;
 import java.util.ArrayList;

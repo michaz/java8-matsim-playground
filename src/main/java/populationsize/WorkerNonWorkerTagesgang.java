@@ -33,7 +33,6 @@ import org.matsim.core.config.Config;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.events.handler.BasicEventHandler;
-import playground.mzilske.ant2014.IterationResource;
 
 import java.util.Arrays;
 

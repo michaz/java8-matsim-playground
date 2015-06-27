@@ -22,6 +22,10 @@
 
 package populationsize;
 
+import cadyts.CadytsModule;
+import cdr.*;
+import clones.ClonesConfigGroup;
+import clones.ClonesModule;
 import enrichtraces.TrajectoryReEnricherModule;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;
@@ -43,7 +47,6 @@ import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.ReplayEvents;
 import org.matsim.core.controler.listener.IterationStartsListener;
-import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.replanning.PlanStrategy;
@@ -55,13 +58,8 @@ import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsReaderMatsimV1;
 import org.matsim.counts.CountsWriter;
-import playground.mzilske.ant2014.FileIO;
-import playground.mzilske.ant2014.IterationResource;
-import playground.mzilske.ant2014.StreamingOutput;
-import playground.mzilske.cadyts.CadytsModule;
-import playground.mzilske.cdr.*;
-import playground.mzilske.clones.ClonesConfigGroup;
-import playground.mzilske.clones.ClonesModule;
+import util.FileIO;
+import util.StreamingOutput;
 
 import java.io.File;
 import java.io.IOException;
