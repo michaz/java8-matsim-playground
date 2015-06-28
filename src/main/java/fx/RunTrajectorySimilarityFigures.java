@@ -60,13 +60,13 @@ public class RunTrajectorySimilarityFigures extends Application {
 
 
 		WritableImage snapShot = chart.chart.snapshot(null, null);
-		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/sparse-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/enriched-trace.png"));
 
 		personId = Id.createPersonId("16155871");
 		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", personId.toString(), (int) distanceCalculator.distance(dense.get(personId))));
 		chart.dense.setAll(dense.get(personId));
 		snapShot = chart.chart.snapshot(null, null);
-		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/sparse-and-dense-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/enriched-and-dense-trace.png"));
 
 		primaryStage.close();
 	}

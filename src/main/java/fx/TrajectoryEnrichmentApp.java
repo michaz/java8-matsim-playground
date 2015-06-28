@@ -25,6 +25,8 @@ package fx;
 import cdr.Sighting;
 import enrichtraces.DistanceCalculator;
 import enrichtraces.TrajectoryEnricher;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 public class TrajectoryEnrichmentApp implements Runnable {
 
     private final DistanceCalculator network;
+    ObservableList<Sighting> enriched;
     ObservableList<Sighting> sparse;
     private ObservableList<Sighting> dense;
     private final TrajectoryEnricher trajectoryEnricher;
@@ -50,8 +53,9 @@ public class TrajectoryEnrichmentApp implements Runnable {
     public TrajectoryEnrichmentApp(DistanceCalculator network, List<Sighting> sparse, List<Sighting> dense) {
         this.network = network;
         this.sparse = FXCollections.observableArrayList(sparse);
+        this.enriched = FXCollections.observableArrayList(sparse);
         this.dense = FXCollections.observableArrayList(dense);
-        trajectoryEnricher = new TrajectoryEnricher(network, this.sparse, this.dense);
+        trajectoryEnricher = new TrajectoryEnricher(network, this.enriched, this.dense);
     }
 
     @Override
@@ -65,49 +69,48 @@ public class TrajectoryEnrichmentApp implements Runnable {
     }
 
     private Parent createContent() {
-        TrajectoryChart chart = new TrajectoryChart();
+        BorderPane borderPane = new BorderPane();
+        TrajectoryChart chartSparse = createChart(true);
+        borderPane.setLeft(chartSparse);
+        TrajectoryChart chartEnriched = createChart(false);
+        borderPane.setRight(chartEnriched);
+        return borderPane;
+    }
+
+    private TrajectoryChart createChart(boolean hideEnriched) {
+        TrajectoryChart chartEnriched = new TrajectoryChart();
         XYChart.Series<Number, Number> sparsePath = new XYChart.Series<>();
         sparsePath.setName("Sparse Path");
         XYChart.Series<Number, Number> densePath = new XYChart.Series<>();
         densePath.setName("Dense Path");
-        chart.getData().add(sparsePath);
-        chart.getData().add(densePath);
-        chart.setOnMouseClicked(click -> {
+        XYChart.Series<Number, Number> enrichedPath = new XYChart.Series<>();
+        enrichedPath.setName("Enriched Path");
+        chartEnriched.getData().add(sparsePath);
+        chartEnriched.getData().add(densePath);
+        chartEnriched.getData().add(enrichedPath);
+        if (hideEnriched) {
+            enrichedPath.getNode().setVisible(false);
+            enrichedPath.dataProperty().addListener(observable -> {
+				enrichedPath.getData().forEach(data -> data.getNode().setVisible(false));
+			});
+        }
+        chartEnriched.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
                 trajectoryEnricher.drehStreckAll();
             }
         });
-//        chart.getData().add(TrajectorySimilarityApp.createLocationMarker(network, new SimpleListProperty<>(sparse), distanceFromHomeChart.markerTime));
-//        chart.getData().add(TrajectorySimilarityApp.createLocationMarker(network, new SimpleListProperty<>(dense), distanceFromHomeChart.markerTime));
         sparsePath.dataProperty().bind(new MyBinding(sparse));
         densePath.dataProperty().bind(new MyBinding(dense));
-        ListView<Sighting> sparseSightingsListView = new ListView<>();
-        sparseSightingsListView.setCellFactory(l -> new SightingsCell());
-        sparseSightingsListView.itemsProperty().bind(new SimpleListProperty<>(sparse));
-        sparseSightingsListView.setOnMouseClicked(click -> {
-            if (click.getClickCount() == 2) {
-                int firstIndex = sparseSightingsListView.getSelectionModel().getSelectedIndex();
-                trajectoryEnricher.drehStreck(firstIndex);
-            }
-        });
-        ListView<Sighting> denseSightingsListView = new ListView<>();
-        denseSightingsListView.itemsProperty().bind(new SimpleListProperty<>(dense));
-        denseSightingsListView.setCellFactory(l -> new SightingsCell());
-        BorderPane borderPane = new BorderPane();
-        borderPane.setCenter(chart);
-//        borderPane.setTop(cumulativeDistanceChart.chart);
-//        borderPane.setBottom(distanceFromHomeChart.chart);
-//        borderPane.setRight(sparseSightingsListView);
-//        borderPane.setLeft(denseSightingsListView);
-        return borderPane;
+        enrichedPath.dataProperty().bind(new MyBinding(enriched));
+        return chartEnriched;
     }
 
     private Parent createContent2() {
         DistanceFromHomeChart distanceFromHomeChart = new DistanceFromHomeChart(network);
-        distanceFromHomeChart.sparse.set(sparse);
+        distanceFromHomeChart.sparse.set(enriched);
         distanceFromHomeChart.dense.set(dense);
         CumulativeDistanceChart cumulativeDistanceChart = new CumulativeDistanceChart(network);
-        cumulativeDistanceChart.sparse.set(sparse);
+        cumulativeDistanceChart.sparse.set(enriched);
         cumulativeDistanceChart.dense.set(dense);
         BorderPane borderPane = new BorderPane();
         borderPane.setTop(cumulativeDistanceChart.chart);
