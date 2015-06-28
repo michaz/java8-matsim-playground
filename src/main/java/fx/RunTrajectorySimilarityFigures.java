@@ -4,6 +4,9 @@ import cdr.Sighting;
 import cdr.Sightings;
 import enrichtraces.DistanceCalculator;
 import javafx.application.Application;
+import javafx.beans.binding.ObjectBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
@@ -58,6 +61,12 @@ public class RunTrajectorySimilarityFigures extends Application {
 
 		WritableImage snapShot = chart.chart.snapshot(null, null);
 		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/test.png"));
+
+		personId = Id.createPersonId("16155871");
+		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", personId.toString(), (int) distanceCalculator.distance(dense.get(personId))));
+		chart.dense.setAll(dense.get(personId));
+		snapShot = chart.chart.snapshot(null, null);
+		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/test2.png"));
 
 	}
 
