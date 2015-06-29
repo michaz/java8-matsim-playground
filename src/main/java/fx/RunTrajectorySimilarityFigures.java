@@ -25,6 +25,9 @@ import java.util.Map;
 
 public class RunTrajectorySimilarityFigures extends Application {
 
+	public static final Id<Person> SPARSE_ID = Id.createPersonId("23138184");
+	public static final Id<Person> DENSE_ID = Id.createPersonId("16155871");
+
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -50,23 +53,30 @@ public class RunTrajectorySimilarityFigures extends Application {
 
 		DistanceCalculator distanceCalculator = new DistanceCalculator(multiRateRun.getBaseRun().getConfigAndNetwork().getNetwork());
 		DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
-		Id<Person> personId = Id.createPersonId("23138184");
-		chart.sparse.setAll(sparse.get(personId));
-		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", personId.toString(), (int) distanceCalculator.distance(sparse.get(personId))));
+		chart.sparse.setAll(sparse.get(SPARSE_ID));
+		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", SPARSE_ID.toString(), (int) distanceCalculator.distance(sparse.get(SPARSE_ID))));
 		Scene scene = new Scene(chart.chart);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
 
-		WritableImage snapShot = chart.chart.snapshot(null, null);
-		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/enriched-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File("output/sparse-trace.png"));
 
-		personId = Id.createPersonId("16155871");
-		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", personId.toString(), (int) distanceCalculator.distance(dense.get(personId))));
-		chart.dense.setAll(dense.get(personId));
-		snapShot = chart.chart.snapshot(null, null);
-		ImageIO.write(SwingFXUtils.fromFXImage(snapShot, null), "png", new File("output/enriched-and-dense-trace.png"));
+		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", DENSE_ID.toString(), (int) distanceCalculator.distance(dense.get(DENSE_ID))));
+		chart.dense.setAll(dense.get(DENSE_ID));
+		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File("output/sparse-and-dense-trace.png"));
+
+		TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, sparse.get(SPARSE_ID), dense.get(DENSE_ID));
+		trajectoryEnrichmentApp.enrich();
+		TrajectoryChart beforeChart = trajectoryEnrichmentApp.createChart(true);
+		TrajectoryChart afterChart = trajectoryEnrichmentApp.createChart(false);
+		primaryStage.setScene(new Scene(beforeChart));
+		ImageIO.write(SwingFXUtils.fromFXImage(beforeChart.snapshot(null, null), null), "png", new File("output/sparse-trace-xy.png"));
+		primaryStage.setScene(new Scene(afterChart));
+		ImageIO.write(SwingFXUtils.fromFXImage(afterChart.snapshot(null, null), null), "png", new File("output/enriched-trace-xy.png"));
+
+
 
 		primaryStage.close();
 	}

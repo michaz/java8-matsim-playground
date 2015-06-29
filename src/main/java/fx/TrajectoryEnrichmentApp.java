@@ -77,7 +77,7 @@ public class TrajectoryEnrichmentApp implements Runnable {
         return borderPane;
     }
 
-    private TrajectoryChart createChart(boolean hideEnriched) {
+    TrajectoryChart createChart(boolean hideEnriched) {
         TrajectoryChart chartEnriched = new TrajectoryChart();
         XYChart.Series<Number, Number> sparsePath = new XYChart.Series<>();
         sparsePath.setName("Sparse Path");
@@ -96,13 +96,17 @@ public class TrajectoryEnrichmentApp implements Runnable {
         }
         chartEnriched.setOnMouseClicked(click -> {
             if (click.getClickCount() == 2) {
-                trajectoryEnricher.drehStreckAll();
+                enrich();
             }
         });
         sparsePath.dataProperty().bind(new MyBinding(sparse));
         densePath.dataProperty().bind(new MyBinding(dense));
         enrichedPath.dataProperty().bind(new MyBinding(enriched));
         return chartEnriched;
+    }
+
+    void enrich() {
+        trajectoryEnricher.drehStreckAll();
     }
 
     private Parent createContent2() {
