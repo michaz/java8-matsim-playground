@@ -48,7 +48,7 @@ public class Main {
         events.take(5).count().subscribe(System.out::println);
         eternalEvents.take(5).count().subscribe(System.out::println);
 
-        new MatsimEventsReader(eventsManager).readFile("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested/output-berlin/ITERS/it.0/2kW.15.0.events.xml.gz");
+        new MatsimEventsReader(eventsManager).readFile("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested3/output-berlin/ITERS/it.0/2kW.15.0.events.xml.gz");
         events.onCompleted();
     }
 

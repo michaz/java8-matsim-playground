@@ -44,23 +44,23 @@ public class Demo {
             subscriber.onCompleted();
         }).doOnError(Throwable::printStackTrace).publish();
 
-//        events.observeOn(Schedulers.computation()).doOnEach(System.out::println).map(e -> {
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e1) {
-//                throw new RuntimeException(e1);
-//            }
-//            return 7;
-//        }).subscribe(System.out::println);
-//
-//        events.observeOn(Schedulers.computation()).doOnEach(System.out::println).map(e -> {
-//            try {
-//                Thread.sleep(200);
-//            } catch (InterruptedException e1) {
-//                throw new RuntimeException(e1);
-//            }
-//            return 8;
-//        }).subscribe(System.out::println);
+        events.onBackpressureBuffer().observeOn(Schedulers.computation()).doOnEach(System.out::println).map(e -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
+                throw new RuntimeException(e1);
+            }
+            return 7;
+        }).subscribe(System.out::println);
+
+        events.onBackpressureBuffer().observeOn(Schedulers.computation()).doOnEach(System.out::println).map(e -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e1) {
+                throw new RuntimeException(e1);
+            }
+            return 8;
+        }).subscribe(System.out::println);
 
         events.onBackpressureBuffer().observeOn(Schedulers.computation()).doOnEach(System.out::println).subscribe(System.out::println);
 
