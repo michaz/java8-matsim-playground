@@ -42,17 +42,14 @@ public class CollectSightingsModule extends AbstractModule {
 
     private static class CallProcessTickerProvider implements Provider<CallProcessTicker> {
 
-        @Inject
-        Scenario scenario;
+        private CallProcess callProcess;
+        private ZoneTracker zoneTracker;
 
         @Inject
-        Sightings sightings;
-
-        @Inject
-        CallProcess callProcess;
-
-        @Inject
-        ZoneTracker zoneTracker;
+        public CallProcessTickerProvider(CallProcess callProcess, ZoneTracker zoneTracker) {
+            this.callProcess = callProcess;
+            this.zoneTracker = zoneTracker;
+        }
 
         @Override
         public CallProcessTicker get() {

@@ -68,6 +68,12 @@ import java.util.*;
 
 public class MultiRateRunResource {
 
+    enum CountLocations {
+        Real, Random;
+    }
+
+    private static final CountLocations COUNT_LOCATIONS = CountLocations.Real;
+
     private static final int LAST_ITERATION = 100;
     private final String WD;
 
@@ -207,13 +213,13 @@ public class MultiRateRunResource {
 
     Counts filterCounts(Counts allCounts) {
         Counts someCounts = new Counts();
-        if (alternative.startsWith("randomcountlocations")) {
+        if (COUNT_LOCATIONS == CountLocations.Random) {
             for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
                 if (Math.random() < 0.05) {
                     someCounts.getCounts().put(entry.getKey(), entry.getValue());
                 }
             }
-        } else if (alternative.startsWith("realcountlocations")) {
+        } else if (COUNT_LOCATIONS == CountLocations.Real) {
             final Counts originalCounts = new Counts();
             new CountsReaderMatsimV1(originalCounts).parse(getBaseRun().getWd() + "/counts.xml");
             for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
@@ -516,13 +522,13 @@ public class MultiRateRunResource {
 
     public void twoRatesRandom(String string) {
         final Scenario baseScenario = getBaseRun().getLastIteration().getExperiencedPlansAndNetwork();
-        final int rate = Integer.parseInt(string);
+        final double rate = Double.parseDouble(string);
         List<Person> persons = new ArrayList<>(baseScenario.getPopulation().getPersons().values());
         Collections.shuffle(persons, new Random(42));
         int i = 0;
         for (Person person : persons) {
             if (i < 9523) { // number of workers
-                person.getCustomAttributes().put("phonerate", 50);
+                person.getCustomAttributes().put("phonerate", 50.0);
             } else {
                 person.getCustomAttributes().put("phonerate", rate);
             }
