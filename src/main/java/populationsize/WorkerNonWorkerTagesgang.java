@@ -60,8 +60,8 @@ public class WorkerNonWorkerTagesgang {
 
 
         doIt(predicate, baseRun.getConfig(), uncongested.getBaseRun().getIteration(0));
-        for (String rate : Arrays.asList("5")) {
-            final MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("trajectoryenrichment100.0");
+        for (String rate : Arrays.asList("5.0")) {
+            final MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("trajectoryenrichment100.0random");
             final RunResource run = multiRateRun.getRateRun(rate, "1");
             IterationResource iteration = run.getLastIteration();
             doIt(predicate, baseRun.getConfig(), iteration);

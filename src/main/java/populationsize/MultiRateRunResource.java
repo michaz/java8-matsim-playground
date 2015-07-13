@@ -90,24 +90,9 @@ public class MultiRateRunResource {
     private final static int MAX_TIME = 30 * TIME_BIN_SIZE - 1;
 
     Collection<String> getRates() {
-        if (alternative.equals("cutoff")) {
-            final List<String> rates = new ArrayList<>();
-            rates.add("70-30");
-            rates.add("100-100");
-            rates.add("50-50");
-            rates.add("90-10");
-            rates.add("100-0");
-            return rates;
-        } else if (alternative.equals("random") || alternative.equals("brute") || alternative.equals("cadyts")) {
-            final List<String> rates = new ArrayList<>();
-            rates.add("0");
-            rates.add("5");
-            return rates;
-        } else {
-            final List<String> rates = new ArrayList<>();
-            rates.add("5");
-            return rates;
-        }
+        final List<String> rates = new ArrayList<>();
+        rates.add("5.0");
+        return rates;
     }
 
     public RunResource getBaseRun() {
@@ -411,7 +396,7 @@ public class MultiRateRunResource {
     private void dumpnonzero(PrintWriter pw, String rate, String ccase, Map<Id, Double> baseKm, Scenario baseScenario) {
         for (Map.Entry<Id, Double> entry : baseKm.entrySet()) {
             Double km = entry.getValue();
-            if (km != 0.0) {
+//            if (km != 0.0) {
                 String id = entry.getKey().toString();
                 String originalId;
                 if (id.startsWith("I"))
@@ -420,7 +405,7 @@ public class MultiRateRunResource {
                     originalId = id;
                 pw.printf("%s\t%s\t%s\t%s\t%f\n", entry.getKey().toString(), rate, ccase, CountWorkers.isWorker(baseScenario.getPopulation().getPersons().get(Id.create(originalId, Person.class))) ? "workers" : "non-workers", km);
                 pw.printf("%s\t%s\t%s\t%s\t%f\n", entry.getKey().toString(), rate, ccase, "all", km);
-            }
+//            }
         }
     }
 
