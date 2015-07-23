@@ -8,8 +8,18 @@ import java.util.Comparator;
 
 public class Sighting extends Event {
 
+	private double accuracy;
+
 	public Id getAgentId() {
 		return agentId;
+	}
+
+	public double getAccuracy() {
+		return accuracy;
+	}
+
+	public void setAccuracy(double accuracy) {
+		this.accuracy = accuracy;
 	}
 
 	public static class StartTimeComparator implements Comparator<Sighting> {
