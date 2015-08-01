@@ -4,25 +4,22 @@ import cdr.Sighting;
 import cdr.Sightings;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.population.MatsimPopulationReader;
-import org.matsim.core.scenario.ScenarioUtils;
 import populationsize.ExperimentResource;
 import populationsize.MultiRateRunResource;
 import populationsize.RegimeResource;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class RunTrajectorySegmentation {
 
 	public void start() throws IOException {
-		try (FileWriter fw = new FileWriter("output/histogram.txt"); FileWriter fw2 = new FileWriter("output/scatter.txt")) {
+		try (PrintWriter fw = new PrintWriter("output/histogram.txt"); PrintWriter fw2 = new PrintWriter("output/scatter.txt")) {
 			final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 			final RegimeResource regime = experiment.getRegime("uncongested3");
 			MultiRateRunResource multiRateRun = regime.getMultiRateRun("realcountlocations100.0");
@@ -36,16 +33,21 @@ public class RunTrajectorySegmentation {
 				p.addPlan(plan);
 				scenario.getPopulation().addPerson(p);
 			}
+
+			Scenario baseScenario = multiRateRun.getBaseRun().getOutputScenario();
+			for (Map.Entry<Id<Person>, ? extends Person> person : baseScenario.getPopulation().getPersons().entrySet()) {
+				long nRealActivities = person.getValue().getSelectedPlan().getPlanElements()
+						.stream().filter(pe -> pe instanceof Activity).count();
+				Person reconstructedPerson = scenario.getPopulation().getPersons().get(person.getKey());
+				long nReconstructedActivities = reconstructedPerson == null ? 0 :
+						reconstructedPerson.getSelectedPlan().getPlanElements()
+								.stream().filter(pe -> pe instanceof Activity).count();
+				List<Sighting> personSightings = sightings.getSightingsPerPerson().get(person.getKey());
+				long nSightings = personSightings == null ? 0 : personSightings.size();
+				fw2.printf("%d %d %d\n",nRealActivities, nReconstructedActivities, nSightings);
+			}
 		}
 	}
-
-	private void compareWithTruth(Sightings sightings) {
-		Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
-		new MatsimPopulationReader(scenario).readFile("/Users/michaelzilske/shared-svn/studies/countries/de/berlin/plans/baseplan_car_only.xml.gz");
-		System.out.println(scenario.getPopulation().getPersons().size());
-		System.out.println(sightings.getSightingsPerPerson().size());
-	}
-
 
 	public static void main(String[] args) throws IOException {
 		new RunTrajectorySegmentation().start();
