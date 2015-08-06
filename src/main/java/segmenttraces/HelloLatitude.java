@@ -1,6 +1,7 @@
 package segmenttraces;
 
 import cdr.Sighting;
+import cdr.ZoneTracker;
 import org.jgrapht.Graphs;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
@@ -33,12 +34,15 @@ public class HelloLatitude {
 	private static CoordinateTransformation t = TransformationFactory.getCoordinateTransformation("WGS84", COORDINATE_SYSTEM);
 
 	private Network network;
+	private ZoneTracker.LinkToZoneResolver zones;
 
 	public HelloLatitude(Network network) {
 		this.network = network;
+		this.zones = zones;
 	}
 
-	Plan getLatitude(List<Sighting> locations) {
+	public Plan getLatitude(List<Sighting> inLocations) {
+		List<Sighting> locations = new ArrayList<>(inLocations);
 		sortLocations(locations);
 		filterLocations(locations);
 		System.out.println("Before segmentation: " + locations.size());

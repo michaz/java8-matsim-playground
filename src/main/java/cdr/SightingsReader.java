@@ -29,8 +29,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SightingsReader {
 
@@ -59,6 +58,9 @@ public class SightingsReader {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+        for (Map.Entry<Id, List<Sighting>> idListEntry : sightings.getSightingsPerPerson().entrySet()) {
+            idListEntry.setValue(Collections.unmodifiableList(idListEntry.getValue()));
         }
     }
 

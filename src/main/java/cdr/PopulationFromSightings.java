@@ -15,6 +15,8 @@ import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.population.algorithms.ParallelPersonAlgorithmRunner;
 import org.matsim.population.algorithms.ParallelPersonAlgorithmRunner.PersonAlgorithmProvider;
 import org.matsim.population.algorithms.PersonAlgorithm;
+import org.matsim.population.algorithms.XY2Links;
+import segmenttraces.HelloLatitude;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -187,9 +189,9 @@ public class PopulationFromSightings {
                     Leg routerLeg = (Leg) route.get(0);
                     double travelTime = routerLeg.getTravelTime();
                     double correctedTravelTime = travelTime + linkTravelTime.getLinkTravelTime(scenario.getNetwork().getLinks().get(activity.getLinkId()), routerLeg.getDepartureTime() + travelTime, null, null);
-                    double latestStartTime = sighting.getTime() - correctedTravelTime;
-                    double earliestStartTime = lastActivity.getEndTime();
-                    double startTime = earliestStartTime + (Math.random() * (latestStartTime - earliestStartTime));
+                    double latestDepartureTime = sighting.getTime() - correctedTravelTime;
+                    double earliestDepartureTime = lastActivity.getEndTime();
+                    double startTime = earliestDepartureTime + (Math.random() * (latestDepartureTime - earliestDepartureTime));
                     lastActivity.setEndTime(startTime);
                 } else {
                     lastActivity.setEndTime(sighting.getTime());
@@ -199,6 +201,12 @@ public class PopulationFromSightings {
         return plan;
     }
 
+    public static Plan createPlanWithSegmentedActivities(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
+        HelloLatitude helloLatitude = new HelloLatitude(scenario.getNetwork());
+        Plan latitudePlan = helloLatitude.getLatitude(sightingsForThisPerson);
+        new XY2Links(scenario).run(latitudePlan);
+        return latitudePlan;
+    }
 
     public static Activity createActivityInZone(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, String zoneId) {
         return scenario.getPopulation().getFactory().createActivityFromLinkId("sighting", zones.chooseLinkInZone(zoneId));

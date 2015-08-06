@@ -58,6 +58,7 @@ import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsReaderMatsimV1;
 import org.matsim.counts.CountsWriter;
+import segmenttraces.TrajectoryReEnricherAndSegmenterModule;
 import util.FileIO;
 import util.StreamingOutput;
 
@@ -165,7 +166,7 @@ public class MultiRateRunResource {
             public void install() {
                 install(new CadytsModule());
                 install(new ClonesModule());
-                install(new TrajectoryReEnricherModule());
+                install(new TrajectoryReEnricherAndSegmenterModule());
                 install(new AbstractModule() {
                     @Override
                     public void install() {
@@ -175,8 +176,7 @@ public class MultiRateRunResource {
                 });
                 addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
                     if (startupEvent.getIteration() == 0) {
-                        scenario.getPopulation().getPersons().values().forEach(p -> p.getPlans().clear());
-                        PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrich");
+                        PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrichAndSegment");
                         reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
                         scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
                         reEnrich.finish();
@@ -258,7 +258,7 @@ public class MultiRateRunResource {
         {
             StrategyConfigGroup.StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(2, StrategySettings.class));
 //            stratSets.setStrategyName("ReRealize");
-            stratSets.setStrategyName("ReEnrich");
+            stratSets.setStrategyName("ReEnrichAndSegment");
             stratSets.setWeight(0.1 / cloneFactor);
             stratSets.setDisableAfter((int) (LAST_ITERATION * 0.8));
             config.strategy().addStrategySettings(stratSets);
