@@ -1,16 +1,16 @@
 library("ggplot2")
 
 regimeRoot <- "/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested3"
-runPathRoot <- paste0(regimeRoot, "/alternatives/trajectoryenrichment100.0random", sep="")
+runPathRoot <- paste0(regimeRoot, "/alternatives/trajectoryenrichment100.0randomlatitude", sep="")
 runPath <- paste0(runPathRoot, "/rates/", sep="")
 
 ratetable <- function(rate) {
-histo52 <- read.table(paste0(runPath,rate,"/1/ITERS/it.0/0.legHistogram.txt",sep=""), header=TRUE)
-histo52workers <- read.table(paste0(runPath,rate,"/1/ITERS/it.0/leghistogram-workers.txt",sep=""), header=TRUE)
-histo52nonworkers <- read.table(paste0(runPath,rate,"/1/ITERS/it.0/leghistogram-nonworkers.txt",sep=""), header=TRUE)
-histo5100 <- read.table(paste0(runPath,rate,"/1/ITERS/it.100/100.legHistogram.txt",sep=""), header=TRUE)
-histo5100workers <- read.table(paste0(runPath,rate,"/1/ITERS/it.100/leghistogram-workers.txt",sep=""), header=TRUE)
-histo5100nonworkers <- read.table(paste0(runPath,rate,"/1/ITERS/it.100/leghistogram-nonworkers.txt",sep=""), header=TRUE)
+histo52 <- read.table(paste0(runPath,rate,".0/1/ITERS/it.0/0.legHistogram.txt",sep=""), header=TRUE)
+histo52workers <- read.table(paste0(runPath,rate,".0/1/ITERS/it.0/leghistogram-workers.txt",sep=""), header=TRUE)
+histo52nonworkers <- read.table(paste0(runPath,rate,".0/1/ITERS/it.0/leghistogram-nonworkers.txt",sep=""), header=TRUE)
+histo5100 <- read.table(paste0(runPath,rate,".0/1/ITERS/it.100/100.legHistogram.txt",sep=""), header=TRUE)
+histo5100workers <- read.table(paste0(runPath,rate,".0/1/ITERS/it.100/leghistogram-workers.txt",sep=""), header=TRUE)
+histo5100nonworkers <- read.table(paste0(runPath,rate,".0/1/ITERS/it.100/leghistogram-nonworkers.txt",sep=""), header=TRUE)
 
 basePath <- paste0(regimeRoot, "/output-berlin/ITERS/it.0/", sep="")
 histo5base <- read.table(paste0(basePath, "2kW.15.0.legHistogram.txt",sep=""), header=TRUE)
@@ -54,7 +54,7 @@ histo5["rate"] = rate
 return(histo5)
 }
 
-histo5 <- ratetable(5)
+histo5 <- ratetable(5.0)
 # histo0 <- ratetable(0)
 
 
