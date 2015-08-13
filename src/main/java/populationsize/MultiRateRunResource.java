@@ -75,7 +75,7 @@ public class MultiRateRunResource {
 
     private static final CountLocations COUNT_LOCATIONS = CountLocations.Real;
 
-    private static final int LAST_ITERATION = 100;
+    private static final int LAST_ITERATION = 0;
     private final String WD;
 
     private final String regime;

@@ -25,8 +25,9 @@ public class SegmentedUnsegmentedTagesgang extends Application {
 		final RegimeResource uncongested = experiment.getRegime("uncongested3");
 		stage.setTitle("Leg Histogram");
 		List<LegHistogram> legHistograms = new ArrayList<>();
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude")));
 		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0random")));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude")));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2")));
 		Scene scene = new Scene(LegHistogramPane.createAnimatedChart(legHistograms), 800, 600);
 		scene.getStylesheets().add("fx/leghistogram.css");
 		stage.setScene(scene);

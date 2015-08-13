@@ -28,7 +28,7 @@ public class Run {
 	public static void main(String[] args) {
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource congested = experiment.getRegime("uncongested3");
-        congested.getMultiRateRun("trajectoryenrichment100.0randomlatitude").simulateRate("5.0", 1, 100.0);
-		congested.getMultiRateRun("trajectoryenrichment100.0randomlatitude").persodisthisto();
+        congested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2").simulateRate("5.0", 1, 100.0);
+		congested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2").persodisthisto();
 	}
 }

@@ -123,7 +123,7 @@ public class HelloLatitude {
 			double start = locations.get(0).getTime();
 			double end = locations.get(locations.size() - 1).getTime();
 			double durationInMinutes = (end - start) / 60.0;
-			segment.isSignificant = durationInMinutes > 5;
+			segment.isSignificant = durationInMinutes > 1;
 			result.add(segment);
 		}
 		return result;
