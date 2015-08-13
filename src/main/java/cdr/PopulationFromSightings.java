@@ -161,9 +161,19 @@ public class PopulationFromSightings {
         return plan;
     }
 
-    public static Plan createPlanWithRandomEndTimesInPermittedWindow(Scenario scenario,
-                                                                    ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
+    public static Plan createPlanWithRandomEndTimesInPermittedWindow(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
+        Plan plan = createActivitiesWithRandomEndTimesInPermittedWindow(scenario, zones, sightingsForThisPerson);
+        insertLegs(scenario, plan);
+        return plan;
+    }
+
+    private static Plan createActivitiesWithRandomEndTimesInPermittedWindow(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
         Plan plan = scenario.getPopulation().getFactory().createPlan();
+        Map<Activity, Double> schlupfs = (Map<Activity, Double>) plan.getCustomAttributes().get("schlupfs");
+        if (schlupfs == null) {
+            schlupfs = new HashMap<>();
+            plan.getCustomAttributes().put("schlupfs", schlupfs);
+        }
         boolean first = true;
         Map<Activity, String> cellsOfSightings;
         cellsOfSightings = new HashMap<>();
@@ -179,8 +189,6 @@ public class PopulationFromSightings {
             } else {
                 Activity lastActivity = (Activity) plan.getPlanElements().get(plan.getPlanElements().size()-1);
                 if ( !(zoneId.equals(cellsOfSightings.get(lastActivity))) ) {
-                    Leg leg = scenario.getPopulation().getFactory().createLeg("car");
-                    plan.addLeg(leg);
                     plan.addActivity(activity);
                     TripRouter tripRouter = new TripRouter();
                     FreeSpeedTravelTime linkTravelTime = new FreeSpeedTravelTime();
@@ -191,7 +199,9 @@ public class PopulationFromSightings {
                     double correctedTravelTime = travelTime + linkTravelTime.getLinkTravelTime(scenario.getNetwork().getLinks().get(activity.getLinkId()), routerLeg.getDepartureTime() + travelTime, null, null);
                     double latestDepartureTime = sighting.getTime() - correctedTravelTime;
                     double earliestDepartureTime = lastActivity.getEndTime();
-                    double startTime = earliestDepartureTime + (Math.random() * (latestDepartureTime - earliestDepartureTime));
+                    double schlupf = latestDepartureTime - earliestDepartureTime;
+                    schlupfs.put(lastActivity, schlupf);
+                    double startTime = earliestDepartureTime + (Math.random() * schlupf);
                     lastActivity.setEndTime(startTime);
                 } else {
                     lastActivity.setEndTime(sighting.getTime());
@@ -201,7 +211,35 @@ public class PopulationFromSightings {
         return plan;
     }
 
+    private static void insertLegs(Scenario scenario, Plan plan) {
+        ListIterator<PlanElement> i = plan.getPlanElements().listIterator();
+        while (i.hasNext()) {
+            PlanElement pe = i.next();
+            if (pe instanceof Activity && i.hasNext()) {
+                Leg leg = scenario.getPopulation().getFactory().createLeg("car");
+                i.add(leg);
+            }
+        }
+    }
+
     public static Plan createPlanWithSegmentedActivities(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
+        Plan plan = createActivitiesWithRandomEndTimesInPermittedWindow(scenario, zones, sightingsForThisPerson);
+        Map<Activity, Double> schlupfs = (Map<Activity, Double>) plan.getCustomAttributes().get("schlupfs");
+        ListIterator<PlanElement> i = plan.getPlanElements().listIterator();
+        while (i.hasNext()) {
+            PlanElement pe = i.next();
+            if (i.previousIndex() != 0 && i.hasNext()) {
+                Double schlupf = schlupfs.get(pe);
+                if ((schlupf / 60.0) < 2.0) {
+                    i.remove();
+                }
+            }
+        }
+        insertLegs(scenario, plan);
+        return plan;
+    }
+
+    private static Plan latitudeAlgorithm(Scenario scenario, List<Sighting> sightingsForThisPerson) {
         HelloLatitude helloLatitude = new HelloLatitude(scenario.getNetwork());
         Plan latitudePlan = helloLatitude.getLatitude(sightingsForThisPerson);
         new XY2Links(scenario).run(latitudePlan);

@@ -8,6 +8,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import org.matsim.analysis.LegHistogram;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class LegHistogramPane {
@@ -31,7 +32,7 @@ public class LegHistogramPane {
 		final LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
 
 
-		lineChart.setTitle("Leg Histogram");
+
 
 		XYChart.Series<Number, Number> departures = new XYChart.Series<>();
 		departures.setName("departures");
@@ -78,6 +79,9 @@ public class LegHistogramPane {
 
 
 			fillSeries(enRoute, enRouteA);
+			int nDepartures = Arrays.stream(legHistogram.getDepartures()).sum();
+			lineChart.setTitle("Leg Histogram with " + nDepartures + " departures");
+
 		});
 		BorderPane borderPane = new BorderPane();
 		borderPane.setCenter(lineChart);

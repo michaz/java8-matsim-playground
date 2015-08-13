@@ -25,18 +25,17 @@ public class SegmentedUnsegmentedTagesgang extends Application {
 		final RegimeResource uncongested = experiment.getRegime("uncongested3");
 		stage.setTitle("Leg Histogram");
 		List<LegHistogram> legHistograms = new ArrayList<>();
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0random")));
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude")));
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2")));
+		legHistograms.add(getLegHistogram(uncongested.getBaseRun().getLastIteration()));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0random").getRateRun("5.0", "1").getIteration(0)));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude").getRateRun("5.0", "1").getIteration(0)));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2").getRateRun("5.0", "1").getIteration(0)));
 		Scene scene = new Scene(LegHistogramPane.createAnimatedChart(legHistograms), 800, 600);
 		scene.getStylesheets().add("fx/leghistogram.css");
 		stage.setScene(scene);
 		stage.show();
 	}
 
-	private LegHistogram getLegHistogram(MultiRateRunResource multiRateRun) {
-		final RunResource run = multiRateRun.getRateRun("5.0", "1");
-		IterationResource iteration = run.getIteration(0);
+	private LegHistogram getLegHistogram(IterationResource iteration) {
 		LegHistogram legHistogram = new LegHistogram(300);
 		ReplayEvents.run(ScenarioUtils.createScenario(ConfigUtils.createConfig()), iteration.getEventsFileName(), new AbstractModule() {
 			@Override
