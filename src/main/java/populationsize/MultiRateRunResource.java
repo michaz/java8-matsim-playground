@@ -409,7 +409,7 @@ public class MultiRateRunResource {
         }
     }
 
-    RunResource getRateRun(String rate, String variant) {
+    public RunResource getRateRun(String rate, String variant) {
         return new RunResource(WD + "/rates/" + rate + "/" + variant, null);
     }
 
