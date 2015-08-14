@@ -169,42 +169,37 @@ public class PopulationFromSightings {
 
     private static Plan createActivitiesWithRandomEndTimesInPermittedWindow(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
         Plan plan = scenario.getPopulation().getFactory().createPlan();
-        Map<Activity, Double> schlupfs = (Map<Activity, Double>) plan.getCustomAttributes().get("schlupfs");
-        if (schlupfs == null) {
-            schlupfs = new HashMap<>();
-            plan.getCustomAttributes().put("schlupfs", schlupfs);
-        }
         boolean first = true;
         Map<Activity, String> cellsOfSightings;
         cellsOfSightings = new HashMap<>();
         for (Sighting sighting : sightingsForThisPerson) {
             String zoneId = sighting.getCellTowerId();
-            Activity activity = createActivityInZone(scenario, zones,
-                    zoneId);
+            Activity activity = createActivityInZone(scenario, zones, zoneId);
             cellsOfSightings.put(activity, zoneId);
             activity.setEndTime(sighting.getTime());
             if (first) {
+                activity.setStartTime(0.0);
                 plan.addActivity(activity);
                 first = false;
             } else {
-                Activity lastActivity = (Activity) plan.getPlanElements().get(plan.getPlanElements().size()-1);
-                if ( !(zoneId.equals(cellsOfSightings.get(lastActivity))) ) {
+                Activity previousActivity = (Activity) plan.getPlanElements().get(plan.getPlanElements().size()-1);
+                if ( !(zoneId.equals(cellsOfSightings.get(previousActivity))) ) {
                     plan.addActivity(activity);
                     TripRouter tripRouter = new TripRouter();
                     FreeSpeedTravelTime linkTravelTime = new FreeSpeedTravelTime();
                     tripRouter.setRoutingModule("car", new NetworkRoutingModule(scenario.getPopulation().getFactory(), scenario.getNetwork(), linkTravelTime));
-                    List<? extends PlanElement> route = tripRouter.calcRoute("car", new ActivityWrapperFacility(lastActivity), new ActivityWrapperFacility(activity), sighting.getTime(), null);
+                    List<? extends PlanElement> route = tripRouter.calcRoute("car", new ActivityWrapperFacility(previousActivity), new ActivityWrapperFacility(activity), sighting.getTime(), null);
                     Leg routerLeg = (Leg) route.get(0);
                     double travelTime = routerLeg.getTravelTime();
                     double correctedTravelTime = travelTime + linkTravelTime.getLinkTravelTime(scenario.getNetwork().getLinks().get(activity.getLinkId()), routerLeg.getDepartureTime() + travelTime, null, null);
                     double latestDepartureTime = sighting.getTime() - correctedTravelTime;
-                    double earliestDepartureTime = lastActivity.getEndTime();
+                    double earliestDepartureTime = previousActivity.getEndTime();
                     double schlupf = latestDepartureTime - earliestDepartureTime;
-                    schlupfs.put(lastActivity, schlupf);
-                    double startTime = earliestDepartureTime + (Math.random() * schlupf);
-                    lastActivity.setEndTime(startTime);
+                    double departureTime = earliestDepartureTime + (Math.random() * schlupf);
+                    previousActivity.setEndTime(departureTime);
+                    activity.setStartTime(departureTime + correctedTravelTime);
                 } else {
-                    lastActivity.setEndTime(sighting.getTime());
+                    previousActivity.setEndTime(sighting.getTime());
                 }
             }
         }
@@ -224,12 +219,11 @@ public class PopulationFromSightings {
 
     public static Plan createPlanWithSegmentedActivities(Scenario scenario, ZoneTracker.LinkToZoneResolver zones, List<Sighting> sightingsForThisPerson) {
         Plan plan = createActivitiesWithRandomEndTimesInPermittedWindow(scenario, zones, sightingsForThisPerson);
-        Map<Activity, Double> schlupfs = (Map<Activity, Double>) plan.getCustomAttributes().get("schlupfs");
         ListIterator<PlanElement> i = plan.getPlanElements().listIterator();
         while (i.hasNext()) {
-            PlanElement pe = i.next();
+            Activity act = (Activity) i.next();
             if (i.previousIndex() != 0 && i.hasNext()) {
-                Double schlupf = schlupfs.get(pe);
+                double schlupf = act.getEndTime() - act.getStartTime();
                 if ((schlupf / 60.0) < 2.0) {
                     i.remove();
                 }
