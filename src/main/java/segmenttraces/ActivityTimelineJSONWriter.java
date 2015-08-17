@@ -1,13 +1,8 @@
 package segmenttraces;
 
+import cdr.Sighting;
 import cdr.Sightings;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.gantt.SlidingGanttCategoryDataset;
-import org.jfree.data.gantt.Task;
-import org.jfree.data.gantt.TaskSeries;
-import org.jfree.data.gantt.TaskSeriesCollection;
+import com.google.gson.Gson;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.Event;
@@ -26,53 +21,87 @@ import populationsize.IterationResource;
 import populationsize.MultiRateRunResource;
 import populationsize.RegimeResource;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-public class ActivityTimelineChart {
 
-	public static void main(String[] args) {
+public class ActivityTimelineJSONWriter {
+
+	static class DataSet {
+		List<Col> cols = new ArrayList<>();
+		List<Row> rows = new ArrayList<>();
+	}
+
+	static class Col {
+		String id;
+		String type;
+	}
+
+	static class Row {
+		List<Entry> c = new ArrayList<>();
+	}
+
+	static class Entry {
+		public Entry(String v, String f) {
+			this.v = v;
+			this.f = f;
+		}
+
+		String v;
+		String f;
+	}
+	public static void main(String[] args) throws IOException {
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource uncongested = experiment.getRegime("uncongested3");
 		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation");
 		IterationResource iteration = multiRateRun.getRateRun("50.0", "1").getIteration(0);
 		Network network = uncongested.getBaseRun().getConfigAndNetwork().getNetwork();
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
-		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(uncongested.getBaseRun().getLastIteration(), network);
+//		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(uncongested.getBaseRun().getLastIteration(), network);
 		Sightings sightings = multiRateRun.getSightings("50.0");
-		TaskSeriesCollection taskSeriesCollection = new TaskSeriesCollection();
 
-		taskSeriesCollection.add(getTaskSeries("Reconstructed", population));
-		taskSeriesCollection.add(getTaskSeries("Original", originalPopulation));
-		taskSeriesCollection.add(getSightings(sightings));
+		Gson gson = new Gson();
+		DataSet dataSet = new DataSet();
+		{
+			Col c = new Col();
+			c.id="Agent ID";
+			c.type="string";
+			dataSet.cols.add(c);
+		}
+		{
+			Col c = new Col();
+			c.id="Activity";
+			c.type="string";
+			dataSet.cols.add(c);
+		}
+		{
+			Col c = new Col();
+			c.id="Begin";
+			c.type="date";
+			dataSet.cols.add(c);
+		}
+		{
+			Col c = new Col();
+			c.id="End";
+			c.type="date";
+			dataSet.cols.add(c);
+		}
 
-		System.out.println(sightings.getSightingsPerPerson().size());
-		System.out.println(sightings.getSightingsPerPerson().values().stream().mapToInt(java.util.List::size).sum());
-
-		SlidingGanttCategoryDataset dataset = new SlidingGanttCategoryDataset(taskSeriesCollection, 0, 15);
-		JFreeChart ganttChart = ChartFactory.createGanttChart("Wurst", "Agent", "Time", dataset);
-
-		ChartPanel chartpanel = new ChartPanel(ganttChart);
-		chartpanel.setPreferredSize(new Dimension(400, 400));
-		JScrollBar scroller = new JScrollBar(1, 0, 15, 0, sightings.getSightingsPerPerson().size());
-		scroller.getModel().addChangeListener(e -> dataset.setFirstCategoryIndex(scroller.getValue()));
-
-		JFrame frame = new JFrame("wurst");
-		frame.getContentPane().setLayout(new BorderLayout());
-		frame.getContentPane().add(chartpanel);
-		frame.getContentPane().add(scroller, "East");
-
-		frame.pack();
-		frame.setVisible(true);
+		dataSet.rows.addAll(getTaskSeries("Reconstructed", population, sightings));
+		FileWriter writer = new FileWriter("src/main/js/pups.json");
+		gson.toJson(dataSet, writer);
+		writer.close();
 	}
 
-	private static TaskSeries getTaskSeries(String name, Map<Id<Person>, Plan> population) {
-		TaskSeries activities = new TaskSeries(name);
-		population.forEach((id, plan) -> {
-			Task t1 = new Task(id.toString(), new Date(0), new Date((24+8) * 60 * 60 * 1000));
-
-			int i=0;
+	private static List<Row> getTaskSeries(String name, Map<Id<Person>, Plan> population, Sightings sightings) {
+		List<Row> result = new ArrayList<>();
+		population.entrySet().stream().limit(100).forEach((en) -> {
+			int i = 0;
+			Plan plan = en.getValue();
+			Id id = en.getKey();
 			for (PlanElement pe : plan.getPlanElements()) {
 				if (pe instanceof Activity) {
 					Activity act = (Activity) pe;
@@ -84,29 +113,40 @@ public class ActivityTimelineChart {
 					if (endTime == Time.UNDEFINED_TIME) {
 						endTime = (24 + 8) * 60 * 60;
 					}
-					t1.addSubtask(new Task(act.getType() + i, new Date((long) startTime * 1000), new Date((long) endTime * 1000)));
+					if (endTime < startTime) {
+						throw new RuntimeException();
+					}
+					Row e = new Row();
+					e.c.add(new Entry(id.toString()+" activities", null));
+					e.c.add(new Entry(act.getType()+i, null));
+					e.c.add(new Entry(toPissString(startTime), null));
+					e.c.add(new Entry(toPissString(endTime), null));
+					result.add(e);
 					i++;
 				}
 			}
-			activities.add(t1);
+			for (Sighting sighting : sightings.getSightingsPerPerson().get(id)) {
+				Row e = new Row();
+				e.c.add(new Entry(id.toString()+" sightings", null));
+				e.c.add(new Entry("sighting"+i, null));
+				e.c.add(new Entry(toPissString(sighting.getTime()), null));
+				e.c.add(new Entry(toPissString(sighting.getTime()), null));
+				result.add(e);
+				i++;
+			}
 		});
-		return activities;
+		return result;
 	}
 
-	private static TaskSeries getSightings(Sightings sightings) {
-		TaskSeries activities = new TaskSeries("Sightings");
-		sightings.getSightingsPerPerson().forEach((id, sightingsPerPerson) -> {
-			final int[] i = {0};
-			Task t1 = new Task(id.toString(), new Date(0), new Date((24+8) * 60 * 60 * 1000));
-			sightingsPerPerson.stream().forEach(sighting -> {
-				t1.addSubtask(new Task("sighting" + i[0], new Date((long) sighting.getTime()*1000), new Date(((long) sighting.getTime()+10)*1000)));
-				i[0]++;
-			});
-			activities.add(t1);
-			System.out.println(sightingsPerPerson.size());
-		});
-		return activities;
+	private static String toPissString(double startTime) {
+		int s = (int) startTime;
+		long h = (long)(s / 3600);
+		s = s % 3600;
+		int m = (int)(s / 60);
+		s = s % 60;
+		return "Date(1970,1,1,"+h+","+m+","+s+")";
 	}
+
 
 	private static Map<Id<Person>, Plan> getExperiencedPlans(IterationResource iteration, Network network) {
 		ScenarioUtils.ScenarioBuilder scenarioBuilder = new ScenarioUtils.ScenarioBuilder(ConfigUtils.createConfig());

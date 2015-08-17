@@ -75,10 +75,10 @@ class TrajectoryReEnricherAndSegmenter extends AbstractMultithreadedModule {
                 newPlan = PopulationFromSightings.createPlanWithSegmentedActivities(scenario, zones, originalTrace);
             } else {
                 ArrayList<Sighting> newTrace = new ArrayList<>(originalTrace);
-                Collections.shuffle(denseTraces);
-                distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces.subList(0, (int) (denseTraces.size() * SAMPLE)));
-                List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
-                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
+//                Collections.shuffle(denseTraces);
+//                distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces.subList(0, (int) (denseTraces.size() * SAMPLE)));
+//                List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
+//                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
                 newPlan = PopulationFromSightings.createPlanWithSegmentedActivities(scenario, zones, newTrace);
             }
             plan.getPlanElements().clear();

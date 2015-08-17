@@ -224,7 +224,7 @@ public class PopulationFromSightings {
             Activity act = (Activity) i.next();
             if (i.previousIndex() != 0 && i.hasNext()) {
                 double schlupf = act.getEndTime() - act.getStartTime();
-                if ((schlupf / 60.0) < 2.0) {
+                if ((schlupf / 60.0) < 10.0) {
                     i.remove();
                 }
             }

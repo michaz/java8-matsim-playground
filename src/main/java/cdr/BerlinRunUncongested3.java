@@ -63,10 +63,7 @@ public class BerlinRunUncongested3 implements Runnable {
 
 		
 		final Controler controller = new Controler(scenario);
-		controller.getConfig().controler().setOverwriteFileSetting(
-				true ?
-						OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles :
-						OutputDirectoryHierarchy.OverwriteFileSetting.failIfDirectoryExists );
+		controller.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		controller.run();
 		
 

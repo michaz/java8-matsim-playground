@@ -10,12 +10,6 @@
 
     <repositories>
         <repository>
-            <!-- Geotools is not on Maven central -->
-            <id>osgeo</id>
-            <name>Geotools repository</name>
-            <url>http://download.osgeo.org/webdav/geotools</url>
-        </repository>
-        <repository>
             <id>matsim</id>
             <url>http://dl.bintray.com/matsim/matsim</url>
         </repository>
@@ -72,6 +66,11 @@
             <groupId>net.sf.jgrapht</groupId>
             <artifactId>jgrapht</artifactId>
             <version>0.8.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
 
