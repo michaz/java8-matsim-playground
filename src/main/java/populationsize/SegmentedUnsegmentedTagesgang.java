@@ -26,9 +26,9 @@ public class SegmentedUnsegmentedTagesgang extends Application {
 		stage.setTitle("Leg Histogram");
 		List<LegHistogram> legHistograms = new ArrayList<>();
 		legHistograms.add(getLegHistogram(uncongested.getBaseRun().getLastIteration()));
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0random").getRateRun("5.0", "1").getIteration(0)));
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude").getRateRun("5.0", "1").getIteration(0)));
-		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("trajectoryenrichment100.0randomlatitude2").getRateRun("5.0", "1").getIteration(0)));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("onlyheavyusers-nothing").getRateRun("50.0", "1").getIteration(0)));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation1minutes").getRateRun("50.0", "1").getIteration(0)));
+		legHistograms.add(getLegHistogram(uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation10minutes").getRateRun("50.0", "1").getIteration(0)));
 		Scene scene = new Scene(LegHistogramPane.createAnimatedChart(legHistograms), 800, 600);
 		scene.getStylesheets().add("fx/leghistogram.css");
 		stage.setScene(scene);
