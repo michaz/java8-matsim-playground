@@ -206,7 +206,7 @@ public class MultiRateRunResource {
             }
         } else if (COUNT_LOCATIONS == CountLocations.Real) {
             final Counts originalCounts = new Counts();
-            new CountsReaderMatsimV1(originalCounts).parse(getBaseRun().getWd() + "/counts.xml");
+            new CountsReaderMatsimV1(originalCounts).parse(getBaseRun().getWd() + "/2kW.15.output_counts.xml");
             for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
                 if (originalCounts.getCounts().keySet().contains(entry.getKey())) {
                     someCounts.getCounts().put(entry.getKey(), entry.getValue());

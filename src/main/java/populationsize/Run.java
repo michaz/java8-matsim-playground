@@ -29,7 +29,7 @@ public class Run {
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource congested = experiment.getRegime("uncongested3");
 //		congested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation").twoRatesRandom("50.0"); // meaning one rate
-        congested.getMultiRateRun("onlyheavyusers-nothing").simulateRate("50.0", 1, 100.0);
+        congested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation").simulateRate("50.0", 1, 100.0);
 //		congested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation").persodisthisto();
 	}
 }

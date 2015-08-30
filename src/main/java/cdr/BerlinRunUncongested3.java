@@ -25,10 +25,13 @@ package cdr;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigReader;
-import org.matsim.core.config.groups.ControlerConfigGroup.MobsimType;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.controler.events.ShutdownEvent;
+import org.matsim.core.controler.listener.ShutdownListener;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.counts.Counts;
+import org.matsim.counts.CountsWriter;
 
 public class BerlinRunUncongested3 implements Runnable {
 	
@@ -51,7 +54,6 @@ public class BerlinRunUncongested3 implements Runnable {
         config.counts().setOutputFormat("kml");
         config.counts().setWriteCountsInterval(1);
         config.counts().setAverageCountsOverIterations(1);
-        config.controler().setMobsim(MobsimType.qsim.toString());
         config.controler().setLastIteration(0);
 		config.qsim().setFlowCapFactor(100);
 		config.qsim().setStorageCapFactor(100);
@@ -64,6 +66,13 @@ public class BerlinRunUncongested3 implements Runnable {
 		
 		final Controler controller = new Controler(scenario);
 		controller.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
+		controller.addControlerListener(new ShutdownListener() {
+			@Override
+			public void notifyShutdown(ShutdownEvent shutdownEvent) {
+				new CountsWriter((Counts) scenario.getScenarioElement(Counts.ELEMENT_NAME))
+						.write(controller.getInjector().getInstance(OutputDirectoryHierarchy.class).getOutputFilename("output_counts.xml"));
+			}
+		});
 		controller.run();
 		
 

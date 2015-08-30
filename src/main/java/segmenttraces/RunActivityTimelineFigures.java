@@ -38,7 +38,7 @@ public class RunActivityTimelineFigures {
 		agents.add(Id.createPersonId("23135904"));
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource uncongested = experiment.getRegime("uncongested3");
-		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation");
+		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation10minutes");
 		IterationResource iteration = multiRateRun.getRateRun("50.0", "1").getIteration(0);
 		Network network = uncongested.getBaseRun().getConfigAndNetwork().getNetwork();
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
