@@ -1,0 +1,3 @@
+BASE=output
+
+berlin3 <- [jar file:target/java8-matsim-playground-1.0-SNAPSHOT.jar class:cdr.BerlinRunUncongested3]

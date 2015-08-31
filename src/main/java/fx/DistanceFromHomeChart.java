@@ -35,11 +35,11 @@ import javafx.scene.chart.XYChart;
 public class DistanceFromHomeChart {
 
     final DoubleProperty markerTime = new SimpleDoubleProperty();
-    final ListProperty<Sighting> sparse = new SimpleListProperty<>(FXCollections.observableArrayList());
-    final ListProperty<Sighting> dense = new SimpleListProperty<>(FXCollections.observableArrayList());
+    public final ListProperty<Sighting> sparse = new SimpleListProperty<>(FXCollections.observableArrayList());
+    public final ListProperty<Sighting> dense = new SimpleListProperty<>(FXCollections.observableArrayList());
 
     private final DistanceCalculator distanceCalculator;
-    final LineChart<Number, Number> chart;
+    public final LineChart<Number, Number> chart;
     final ObjectProperty<ObservableList<XYChart.Data<Number, Number>>> sparseXYData;
     final ObjectProperty<ObservableList<XYChart.Data<Number, Number>>> denseXYData;
 

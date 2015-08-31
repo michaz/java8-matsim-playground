@@ -5,6 +5,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.GanttRenderer;
 import org.jfree.data.gantt.SlidingGanttCategoryDataset;
@@ -26,16 +27,14 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import static segmenttraces.ActivityTimelineChart.*;
 
 public class RunActivityTimelineFigures {
 
 	public static void main(String[] args) {
-		Set<Id<Person>> agents = new HashSet<>();
-		agents.add(Id.createPersonId("24122484"));
-		agents.add(Id.createPersonId("14104774"));
-		agents.add(Id.createPersonId("23135904"));
+		Set<Id<Person>> agents = getAgentIds();
 		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
 		final RegimeResource uncongested = experiment.getRegime("uncongested3");
 		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation10minutes");
@@ -56,6 +55,9 @@ public class RunActivityTimelineFigures {
 
 		SlidingGanttCategoryDataset dataset = new SlidingGanttCategoryDataset(taskSeriesCollection, 0, 5);
 		JFreeChart ganttChart = ChartFactory.createGanttChart("Activities", "Agent", "Time", dataset);
+		((DateAxis) ganttChart.getCategoryPlot().getRangeAxis()).setTimeZone(TimeZone.getTimeZone("UTC"));
+		ganttChart.getCategoryPlot().getRangeAxis().setLowerBound(9.0 * 60 * 60 * 1000);
+		ganttChart.getCategoryPlot().getRangeAxis().setUpperBound(24.0 * 60 * 60 * 1000);
 		GanttRenderer renderer = (GanttRenderer) ((CategoryPlot) ganttChart.getPlot()).getRenderer();
 		renderer.setDrawBarOutline(true);
 		renderer.setSeriesPaint(0, Color.BLACK);
@@ -72,6 +74,14 @@ public class RunActivityTimelineFigures {
 			throw new UncheckedIOException(e);
 		}
 
+	}
+
+	static Set<Id<Person>> getAgentIds() {
+		Set<Id<Person>> agents = new HashSet<>();
+		agents.add(Id.createPersonId("24122484"));
+		agents.add(Id.createPersonId("14104774"));
+		agents.add(Id.createPersonId("23135904"));
+		return agents;
 	}
 
 }
