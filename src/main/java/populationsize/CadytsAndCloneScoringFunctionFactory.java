@@ -36,7 +36,7 @@ import org.matsim.core.scoring.SumScoringFunction;
 
 import javax.inject.Inject;
 
-class CadytsAndCloneScoringFunctionFactory implements ScoringFunctionFactory {
+public class CadytsAndCloneScoringFunctionFactory implements ScoringFunctionFactory {
 
     @Inject
     Config config;

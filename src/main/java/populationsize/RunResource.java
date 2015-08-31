@@ -48,6 +48,10 @@ public class RunResource {
     private String wd;
 	private String runId;
 
+	public RunResource(String wd) {
+		this.wd = wd;
+	}
+
 	public RunResource(String wd, String runId) {
 		this.wd = wd;
 		this.runId = runId;

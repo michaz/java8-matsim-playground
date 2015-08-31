@@ -19,9 +19,6 @@
 <!-- ====================================================================== -->
 
 	<module name="controler" >
-		<param name="runId" value="2kW.15" />
-
-
 		<param name="eventsFileFormat" value="xml" />
 		<param name="firstIteration" value="0" />
 

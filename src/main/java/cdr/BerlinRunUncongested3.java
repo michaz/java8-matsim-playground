@@ -33,37 +33,31 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
 
-public class BerlinRunUncongested3 implements Runnable {
+public class BerlinRunUncongested3 {
 	
 	final static String BERLIN_PATH = "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/";
 	
 	public static void main(String[] args) {
-		BerlinRunUncongested3 berlinRun = new BerlinRunUncongested3();
-		berlinRun.run();
-	}
-	
-	@Override
-	public void run() {
 		Config config = new Config();
 		config.addCoreModules();
-		new ConfigReader(config).parse(this.getClass().getResourceAsStream("2kW.15.xml"));
+		new ConfigReader(config).parse(BerlinRunUncongested3.class.getResourceAsStream("2kW.15.xml"));
 		config.plans().setInputFile(BERLIN_PATH + "plans/baseplan_car_only.xml.gz");
 		config.network().setInputFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
 		config.counts().setCountsFileName(BERLIN_PATH + "counts/iv_counts/vmz_di-do.xml");
-        config.controler().setOutputDirectory("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested3/output-berlin");
-        config.counts().setOutputFormat("kml");
-        config.counts().setWriteCountsInterval(1);
-        config.counts().setAverageCountsOverIterations(1);
-        config.controler().setLastIteration(0);
+		config.controler().setOutputDirectory(args[0]);
+		config.counts().setOutputFormat("kml");
+		config.counts().setWriteCountsInterval(1);
+		config.counts().setAverageCountsOverIterations(1);
+		config.controler().setLastIteration(0);
 		config.qsim().setFlowCapFactor(100);
 		config.qsim().setStorageCapFactor(100);
 		config.qsim().setRemoveStuckVehicles(false);
 		config.planCalcScore().setWriteExperiencedPlans(true);
-		
-		Scenario scenario = ScenarioUtils.loadScenario(config);
-		
 
-		
+		Scenario scenario = ScenarioUtils.loadScenario(config);
+
+
+
 		final Controler controller = new Controler(scenario);
 		controller.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		controller.addControlerListener(new ShutdownListener() {
@@ -74,7 +68,6 @@ public class BerlinRunUncongested3 implements Runnable {
 			}
 		});
 		controller.run();
-		
-
 	}
+
 }

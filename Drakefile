@@ -1,3 +1,10 @@
 BASE=output
 
-berlin3 <- [jar file:target/java8-matsim-playground-1.0-SNAPSHOT.jar class:cdr.BerlinRunUncongested3]
+berlin/uncongested3/output-berlin <- [-timecheck]
+	mvn exec:java -Dexec.mainClass="cdr.BerlinRunUncongested3" -Dexec.args="$OUTPUT"
+
+berlin/uncongested3/alternatives/only-heavy-users/sightings <- berlin/uncongested3/output-berlin
+	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
+
+berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/sightings
+	mvn exec:java -Dexec.mainClass="segmenttraces.RunTrajectorySegmentationOnly" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"

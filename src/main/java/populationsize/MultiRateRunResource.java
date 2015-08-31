@@ -218,7 +218,7 @@ public class MultiRateRunResource {
         return someCounts;
     }
 
-    private Config phoneConfig(int cloneFactor) {
+    public static Config phoneConfig(int cloneFactor) {
         Config config = ConfigUtils.createConfig();
         config.global().setNumberOfThreads(8);
         config.controler().setLastIteration(LAST_ITERATION);
