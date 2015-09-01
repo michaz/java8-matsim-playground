@@ -1,6 +1,8 @@
 package segmenttraces;
 
 import cdr.Sightings;
+import cdr.SightingsImpl;
+import cdr.SightingsReader;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
@@ -14,11 +16,9 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
-import populationsize.ExperimentResource;
-import populationsize.IterationResource;
-import populationsize.MultiRateRunResource;
-import populationsize.RegimeResource;
+import populationsize.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,20 +31,25 @@ import java.util.TimeZone;
 
 import static segmenttraces.ActivityTimelineChart.*;
 
-public class RunActivityTimelineFigures {
+public class RunActivityStructure {
 
 	public static void main(String[] args) {
+		String baseRunDir = args[0];
+		String sightingsDir = args[1];
+		String runDir = args[2];
+		String output = args[3];
 		Set<Id<Person>> agents = getAgentIds();
-		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
-		final RegimeResource uncongested = experiment.getRegime("uncongested3");
-		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation10minutes");
-		IterationResource iteration = multiRateRun.getRateRun("50.0", "1").getIteration(0);
-		Network network = uncongested.getBaseRun().getConfigAndNetwork().getNetwork();
+		RunResource run = new RunResource(runDir);
+		RunResource baseRun = new RunResource(baseRunDir);
+
+		IterationResource iteration = run.getIteration(0);
+		Network network = baseRun.getConfigAndNetwork().getNetwork();
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
 		population.keySet().retainAll(agents);
-		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(uncongested.getBaseRun().getLastIteration(), network);
+		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
 		originalPopulation.keySet().retainAll(agents);
-		Sightings sightings = multiRateRun.getSightings("50.0");
+		final Sightings sightings = new SightingsImpl();
+		new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
 		sightings.getSightingsPerPerson().keySet().retainAll(agents);
 
 		TaskSeriesCollection taskSeriesCollection = new TaskSeriesCollection();
@@ -69,7 +74,7 @@ public class RunActivityTimelineFigures {
 		renderer.setSeriesOutlineStroke(0, new BasicStroke(1.0F));
 
 		try {
-			ChartUtilities.saveChartAsPNG(new File("output/activity-structure.png"), ganttChart, 1024, 768);
+			ChartUtilities.saveChartAsPNG(new File(output), ganttChart, 1024, 768);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}

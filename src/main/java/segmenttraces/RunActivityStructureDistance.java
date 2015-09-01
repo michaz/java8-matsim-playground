@@ -16,10 +16,7 @@ import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.core.utils.misc.Time;
-import populationsize.ExperimentResource;
-import populationsize.IterationResource;
-import populationsize.MultiRateRunResource;
-import populationsize.RegimeResource;
+import populationsize.*;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -29,7 +26,7 @@ import java.util.Map;
 
 import static segmenttraces.ActivityTimelineChart.getExperiencedPlans;
 
-public class RunActivityTimeline extends Application {
+public class RunActivityStructureDistance extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
@@ -58,16 +55,16 @@ public class RunActivityTimeline extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
-		final RegimeResource uncongested = experiment.getRegime("uncongested3");
-		MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("onlyheavyusers-noenrichment-segmentation10minutes");
-		IterationResource iteration = multiRateRun.getRateRun("50.0", "1").getIteration(0);
-		Network network = uncongested.getBaseRun().getConfigAndNetwork().getNetwork();
+		RunResource baseRun = new RunResource(getParameters().getNamed().get("baseRunDir"));
+		RunResource run = new RunResource(getParameters().getNamed().get("runDir"));
+		String output = getParameters().getNamed().get("output");
+		IterationResource iteration = run.getIteration(0);
+		Network network = baseRun.getConfigAndNetwork().getNetwork();
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
-		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(uncongested.getBaseRun().getLastIteration(), network);
-		DistanceCalculator distanceCalculator = new DistanceCalculator(multiRateRun.getBaseRun().getConfigAndNetwork().getNetwork());
+		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
+		DistanceCalculator distanceCalculator = new DistanceCalculator(network);
 		final VBox vBox = new VBox();
-		for (Id personId : RunActivityTimelineFigures.getAgentIds()) {
+		for (Id personId : RunActivityStructure.getAgentIds()) {
 			DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
 			chart.sparse.setAll(plan2sightings(originalPopulation.get(personId), personId));
 			chart.dense.setAll(plan2sightings(population.get(personId), personId));
@@ -82,7 +79,7 @@ public class RunActivityTimeline extends Application {
 		Scene scene = new Scene(vBox);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		ImageIO.write(SwingFXUtils.fromFXImage(vBox.snapshot(null, null), null), "png", new File("output/activity-structure-distance.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(vBox.snapshot(null, null), null), "png", new File(output));
 	}
 
 }

@@ -8,3 +8,9 @@ berlin/uncongested3/alternatives/only-heavy-users/sightings <- berlin/uncongeste
 
 berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/sightings
 	mvn exec:java -Dexec.mainClass="segmenttraces.RunTrajectorySegmentationOnly" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"
+
+berlin/uncongested3/activity-structure.png <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/sightings, berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only
+	mvn exec:java -Dexec.mainClass="segmenttraces.RunActivityStructure" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"
+
+berlin/uncongested3/activity-structure-distance.png <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only
+	mvn exec:java -Dexec.mainClass="segmenttraces.RunActivityStructureDistance" -Dexec.args="--baseRunDir=$INPUT0 --runDir=$INPUT1 --output=$OUTPUT"
