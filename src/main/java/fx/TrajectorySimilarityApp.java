@@ -24,6 +24,8 @@ package fx;
 
 import cdr.Sighting;
 import cdr.Sightings;
+import cdr.SightingsImpl;
+import cdr.SightingsReader;
 import enrichtraces.DistanceCalculator;
 import javafx.application.Application;
 import javafx.beans.binding.ListBinding;
@@ -46,9 +48,12 @@ import javafx.util.Callback;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Id;
+import org.matsim.api.core.v01.Scenario;
+import org.matsim.core.utils.io.IOUtils;
 import populationsize.ExperimentResource;
 import populationsize.MultiRateRunResource;
 import populationsize.RegimeResource;
+import populationsize.RunResource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -91,15 +96,14 @@ public class TrajectorySimilarityApp extends Application {
     }
 
     public Parent createContent() {
+        String sightingsDir="/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested3_old/alternatives/realcountlocations100.0/rates/5";
+        String baseRunDir="output/berlin/uncongested3/output-berlin";
+        final Sightings sightings = new SightingsImpl();
+        new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
+        RunResource baseRun = new RunResource(baseRunDir);
+        Scenario baseScenario = baseRun.getConfigAndNetwork();
         final Map<Id, List<Sighting>> dense = new HashMap<>();
         final Map<Id, List<Sighting>> sparse = new HashMap<>();
-        final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
-        final RegimeResource regime = experiment.getRegime("uncongested3");
-        MultiRateRunResource multiRateRun = regime.getMultiRateRun("realcountlocations100.0");
-        Sightings sightings = multiRateRun.getSightings("5");
-
-
-
         for (Map.Entry<Id, List<Sighting>> entry : sightings.getSightingsPerPerson().entrySet()) {
             if (entry.getValue().size() > 20) {
                 dense.put(entry.getKey(), entry.getValue());
@@ -108,7 +112,7 @@ public class TrajectorySimilarityApp extends Application {
             }
         }
 
-        distanceCalculator = new DistanceCalculator(multiRateRun.getBaseRun().getConfigAndNetwork().getNetwork());
+        distanceCalculator = new DistanceCalculator(baseScenario.getNetwork());
         ListView<Map.Entry<Id, List<Sighting>>> sparseView = createLeftView(() -> sparse);
         ListView<Map.Entry<Id, List<Sighting>>> denseView = createRightView(() -> dense, sparseView.getSelectionModel().selectedItemProperty());
 
