@@ -75,7 +75,6 @@ public class MultiRateRunResource {
 
     private static final CountLocations COUNT_LOCATIONS = CountLocations.Real;
 
-    private static final int LAST_ITERATION = 0;
     private final String WD;
 
     private final String regime;
@@ -135,60 +134,6 @@ public class MultiRateRunResource {
         new CountsWriter(someCounts).write(rateDir + "/calibration_counts.xml.gz");
     }
 
-    public void simulateRate(String rate, final int cloneFactor, final double cadytsWeight) {
-        final Config config = phoneConfig(cloneFactor);
-        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
-        config.controler().setOutputDirectory(WD + "/rates/" + rate + "/" + cloneFactor);
-
-        Scenario baseScenario = getBaseRun().getConfigAndNetwork();
-        final ScenarioImpl scenario = (ScenarioImpl) ScenarioUtils.createScenario(config);
-        scenario.setNetwork(baseScenario.getNetwork());
-
-        final Sightings allSightings = getSightings(rate);
-        final ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
-
-        PopulationFromSightings.createPopulationWithRandomRealization(scenario, allSightings, linkToZoneResolver);
-
-        final Counts allCounts = new Counts();
-        new CountsReaderMatsimV1(allCounts).parse(WD + "/rates/" + rate + "/all_counts.xml.gz");
-        final Counts someCounts = new Counts();
-        new CountsReaderMatsimV1(someCounts).parse(WD + "/rates/" + rate + "/calibration_counts.xml.gz");
-
-        scenario.addScenarioElement(Counts.ELEMENT_NAME, allCounts);
-        scenario.addScenarioElement("calibrationCounts", someCounts);
-
-        ClonesConfigGroup clonesConfig = ConfigUtils.addOrGetModule(config, ClonesConfigGroup.NAME, ClonesConfigGroup.class);
-        clonesConfig.setCloneFactor(cloneFactor);
-
-        Controler controler = new Controler(scenario);
-        controler.addOverridingModule(new AbstractModule() {
-            @Override
-            public void install() {
-                install(new CadytsModule());
-                install(new ClonesModule());
-                install(new TrajectoryReEnricherAndSegmenterModule());
-                install(new AbstractModule() {
-                    @Override
-                    public void install() {
-                        bind(ZoneTracker.LinkToZoneResolver.class).toInstance(linkToZoneResolver);
-                        bind(Sightings.class).toInstance(allSightings);
-                    }
-                });
-                addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
-                    if (startupEvent.getIteration() == 0) {
-                        PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrichAndSegment");
-                        reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
-                        scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
-                        reEnrich.finish();
-                    }
-                });
-            }
-        });
-        CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
-        factory.setCadytsweight(cadytsWeight);
-        controler.setScoringFunctionFactory(factory);
-        controler.run();
-    }
 
     public Sightings getSightings(String rate) {
         final Sightings allSightings = new SightingsImpl();
@@ -218,10 +163,10 @@ public class MultiRateRunResource {
         return someCounts;
     }
 
-    public static Config phoneConfig(int cloneFactor) {
+    public static Config phoneConfig(int lastIteration, double cloneFactor) {
         Config config = ConfigUtils.createConfig();
         config.global().setNumberOfThreads(8);
-        config.controler().setLastIteration(LAST_ITERATION);
+        config.controler().setLastIteration(lastIteration);
         ActivityParams sightingParam = new ActivityParams("sighting");
         sightingParam.setTypicalDuration(30.0 * 60);
         config.controler().setWritePlansInterval(100);
@@ -230,7 +175,7 @@ public class MultiRateRunResource {
         config.planCalcScore().setPerforming_utils_hr(0);
         config.planCalcScore().setTravelingOther_utils_hr(-6);
         config.planCalcScore().setConstantCar(0);
-        config.planCalcScore().setMonetaryDistanceCostRateCar(0);
+        config.planCalcScore().setMonetaryDistanceRateCar(0);
         CadytsConfigGroup cadytsConfig = ConfigUtils.addOrGetModule(config, CadytsConfigGroup.GROUP_NAME, CadytsConfigGroup.class);
         cadytsConfig.setVarianceScale(0.001);
         cadytsConfig.setMinFlowStddev_vehPerHour(2.0);
@@ -248,19 +193,18 @@ public class MultiRateRunResource {
             stratSets.setWeight(1.0);
             config.strategy().addStrategySettings(stratSets);
         }
-//        {
-//            StrategySettings stratSets = new StrategySettings(new IdImpl(2));
-//            stratSets.setModuleName("SelectRandom");
-//            stratSets.setProbability(0.1);
-//            stratSets.setDisableAfter(30);
-//            config.strategy().addStrategySettings(stratSets);
-//        }
+        {
+            StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(3, StrategySettings.class));
+            stratSets.setStrategyName("SelectRandom");
+            stratSets.setWeight(0.1);
+            stratSets.setDisableAfter((int) (lastIteration * 0.5));
+            config.strategy().addStrategySettings(stratSets);
+        }
         {
             StrategyConfigGroup.StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(2, StrategySettings.class));
-//            stratSets.setStrategyName("ReRealize");
-            stratSets.setStrategyName("ReEnrichAndSegment");
+            stratSets.setStrategyName("ReRealize");
             stratSets.setWeight(0.1 / cloneFactor);
-            stratSets.setDisableAfter((int) (LAST_ITERATION * 0.8));
+            stratSets.setDisableAfter((int) (lastIteration * 0.8));
             config.strategy().addStrategySettings(stratSets);
         }
 
@@ -494,45 +438,6 @@ public class MultiRateRunResource {
         final VolumesAnalyzer groundTruthVolumes = results.get(VolumesAnalyzer.class);
 
         String rateDir = WD + "/rates/" + (int) (worker * 100) + "-" + (int) (nonworker * 100);
-        new File(rateDir).mkdirs();
-
-        new SightingsWriter(sightings).write(rateDir + "/sightings.txt");
-        final Counts allCounts = CompareMain.volumesToCounts(baseScenario.getNetwork(), groundTruthVolumes, 1.0);
-        allCounts.setYear(2012);
-        new CountsWriter(allCounts).write(rateDir + "/all_counts.xml.gz");
-        final Counts someCounts = filterCounts(allCounts);
-        someCounts.setYear(2012);
-        new CountsWriter(someCounts).write(rateDir + "/calibration_counts.xml.gz");
-    }
-
-    public void twoRatesRandom(String string) {
-        final Scenario baseScenario = getBaseRun().getLastIteration().getExperiencedPlansAndNetwork();
-        final double rate = Double.parseDouble(string);
-        List<Person> persons = new ArrayList<>(baseScenario.getPopulation().getPersons().values());
-        Collections.shuffle(persons, new Random(42));
-        int i = 0;
-        for (Person person : persons) {
-            if (i < 9523) { // number of workers
-                person.getCustomAttributes().put("phonerate", 50.0);
-            } else {
-                person.getCustomAttributes().put("phonerate", rate);
-            }
-            i++;
-        }
-        ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
-        CallBehavior phonerate = new PhoneRateAttributeCallBehavior(baseScenario);
-        ReplayEvents.Results results = ReplayEvents.run(
-                baseScenario,
-                getBaseRun().getLastIteration().getEventsFileName(),
-                new VolumesAnalyzerModule(),
-                new CollectSightingsModule(),
-                new CallBehaviorModule(phonerate, linkToZoneResolver));
-
-
-        final Sightings sightings = results.get(Sightings.class);
-        final VolumesAnalyzer groundTruthVolumes = results.get(VolumesAnalyzer.class);
-
-        String rateDir = WD + "/rates/" + rate;
         new File(rateDir).mkdirs();
 
         new SightingsWriter(sightings).write(rateDir + "/sightings.txt");

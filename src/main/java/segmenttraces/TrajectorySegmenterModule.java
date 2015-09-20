@@ -27,8 +27,6 @@ import cdr.Sighting;
 import cdr.Sightings;
 import cdr.ZoneTracker;
 import clones.CloneService;
-import enrichtraces.DistanceCalculator;
-import enrichtraces.TrajectoryEnricher;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
@@ -44,24 +42,26 @@ import org.matsim.population.algorithms.PlanAlgorithm;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
-public class TrajectoryReEnricherAndSegmenterModule extends AbstractModule {
+public class TrajectorySegmenterModule extends AbstractModule {
 
     @Override
     public void install() {
-        addPlanStrategyBinding("ReRealize").toProvider(TrajectoryReEnricherAndSegmenterProvider.class);
+        addPlanStrategyBinding("ReRealize").toProvider(TrajectorySegmenterProvider.class);
     }
 
-    static class TrajectoryReEnricherAndSegmenterProvider implements Provider<PlanStrategy> {
+    static class TrajectorySegmenterProvider implements Provider<PlanStrategy> {
         private Scenario scenario;
         private Sightings sightings;
         private ZoneTracker.LinkToZoneResolver zones;
         private CloneService cloneService;
 
         @Inject
-        TrajectoryReEnricherAndSegmenterProvider(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
+		TrajectorySegmenterProvider(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
             this.scenario = scenario;
             this.sightings = sightings;
             this.zones = zones;
@@ -71,30 +71,27 @@ public class TrajectoryReEnricherAndSegmenterModule extends AbstractModule {
         @Override
         public PlanStrategy get() {
             PlanStrategyImpl planStrategy = new PlanStrategyImpl(new RandomPlanSelector<>());
-            planStrategy.addStrategyModule(new TrajectoryReEnricherAndSegmenter(scenario, sightings, zones, cloneService));
+            planStrategy.addStrategyModule(new TrajectorySegmenter(scenario, sightings, zones, cloneService));
             planStrategy.addStrategyModule(new ReRoute(scenario));
             return planStrategy;
         }
     }
 
-    static class TrajectoryReEnricherAndSegmenter extends AbstractMultithreadedModule {
+    static class TrajectorySegmenter extends AbstractMultithreadedModule {
 
-		private final DistanceCalculator distanceCalculator;
 		private Sightings sightings;
 		private Scenario scenario;
 		private ZoneTracker.LinkToZoneResolver zones;
 		private CloneService cloneService;
 		final Map<Id, List<Sighting>> dense;
 		private final Predicate<List<Sighting>> isDense = trace -> trace.size() > 20;
-		static final double SAMPLE=0.1;
 
-		TrajectoryReEnricherAndSegmenter(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
+		TrajectorySegmenter(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
 			super(scenario.getConfig().global());
 			this.sightings = sightings;
 			this.scenario = scenario;
 			this.zones = zones;
 			this.cloneService = cloneService;
-			this.distanceCalculator = new DistanceCalculator(scenario.getNetwork());
 			this.dense = new HashMap<>();
 			sightings.getSightingsPerPerson().entrySet().stream().filter(entry -> isDense.test(entry.getValue()))
 					.forEach(entry -> dense.put(entry.getKey(), entry.getValue()));
@@ -102,22 +99,11 @@ public class TrajectoryReEnricherAndSegmenterModule extends AbstractModule {
 
 		@Override
 		public PlanAlgorithm getPlanAlgoInstance() {
-			List<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet());
 			return plan -> {
 				Id personId = plan.getPerson().getId();
 				Id originalPersonId = cloneService.resolveParentId(personId);
 				List<Sighting> originalTrace = sightings.getSightingsPerPerson().get(originalPersonId);
-				Plan newPlan;
-				if (isDense.test(originalTrace)) {
-					newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, originalTrace);
-				} else {
-					ArrayList<Sighting> newTrace = new ArrayList<>(originalTrace);
-					Collections.shuffle(denseTraces);
-					distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces.subList(0, (int) (denseTraces.size() * SAMPLE)));
-					List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
-					new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
-					newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, newTrace);
-				}
+				Plan newPlan = PopulationFromSightings.createPlanWithSegmentedActivities(scenario, zones, originalTrace);
 				plan.getPlanElements().clear();
 				((PlanImpl) plan).copyFrom(newPlan);
 				plan.getPlanElements().stream().filter(pe -> pe instanceof Leg).forEach(pe -> ((Leg) pe).setMode("car"));

@@ -77,17 +77,17 @@ class ClonesControlerListener implements Provider<ControlerListener> {
                             scenario.getPopulation().addPerson(clone);
                         }
                     }
-                }
-                ExpBetaPlanSelector<Plan, Person> planSelector = new ExpBetaPlanSelector<>(scenario.getConfig().planCalcScore());
-                for (Person person : scenario.getPopulation().getPersons().values()) {
-                    List<Plan> plans = new ArrayList<>(person.getPlans());
-                    for (Plan plan : plans) {
-                        person.setSelectedPlan(plan);
-                        SumScoringFunction.BasicScoring scoring = cloneService.createNewScoringFunction(person);
-                        scoring.finish();
-                        plan.setScore(scoring.getScore());
+                    ExpBetaPlanSelector<Plan, Person> planSelector = new ExpBetaPlanSelector<>(scenario.getConfig().planCalcScore());
+                    for (Person person : scenario.getPopulation().getPersons().values()) {
+                        List<Plan> plans = new ArrayList<>(person.getPlans());
+                        for (Plan plan : plans) {
+                            person.setSelectedPlan(plan);
+                            SumScoringFunction.BasicScoring scoring = cloneService.createNewScoringFunction(person);
+                            scoring.finish();
+                            plan.setScore(scoring.getScore());
+                        }
+                        person.setSelectedPlan(planSelector.selectPlan(person));
                     }
-                    person.setSelectedPlan(planSelector.selectPlan(person));
                 }
             }
 

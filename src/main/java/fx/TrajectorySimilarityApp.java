@@ -96,7 +96,7 @@ public class TrajectorySimilarityApp extends Application {
     }
 
     public Parent createContent() {
-        String sightingsDir="/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/regimes/uncongested3_old/alternatives/realcountlocations100.0/rates/5";
+        String sightingsDir="output/berlin/uncongested3/alternatives/random-heavy-users/sightings";
         String baseRunDir="output/berlin/uncongested3/output-berlin";
         final Sightings sightings = new SightingsImpl();
         new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));

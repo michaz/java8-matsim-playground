@@ -207,7 +207,7 @@ public class CreateODDemand extends Application {
         config.planCalcScore().setPerforming_utils_hr(0);
         config.planCalcScore().setTravelingOther_utils_hr(0);
         config.planCalcScore().setConstantCar(0);
-        config.planCalcScore().setMonetaryDistanceCostRateCar(0);
+        config.planCalcScore().setMonetaryDistanceRateCar(0);
 
         final int LAST_ITERATION = 100;
         config.controler().setLastIteration(LAST_ITERATION);

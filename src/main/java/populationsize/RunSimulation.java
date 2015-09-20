@@ -1,9 +1,10 @@
-package segmenttraces;
+package populationsize;
 
 import cadyts.CadytsModule;
 import cdr.*;
 import clones.ClonesConfigGroup;
 import clones.ClonesModule;
+import enrichtraces.TrajectoryReEnricherModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -18,21 +19,22 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsReaderMatsimV1;
-import populationsize.CadytsAndCloneScoringFunctionFactory;
-import populationsize.MultiRateRunResource;
-import populationsize.RunResource;
 
-public class RunTrajectorySegmentationOnly {
+public class RunSimulation {
 
 	public static void main(String[] args) {
 		String baseRunDir = args[0];
 		String sightingsDir = args[1];
 		String output = args[2];
-		int cloneFactor = 1;
-		final Config config = MultiRateRunResource.phoneConfig(0, cloneFactor);
+
+		RunResource baseRun = new RunResource(baseRunDir);
+
+		final double cadytsWeight = 100.0;
+		int lastIteration = 100;
+		double cloneFactor = 1.0;
+		final Config config = MultiRateRunResource.phoneConfig(lastIteration, cloneFactor);
 		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 		config.controler().setOutputDirectory(output);
-		RunResource baseRun = new RunResource(baseRunDir);
 
 		Scenario baseScenario = baseRun.getConfigAndNetwork();
 		final ScenarioImpl scenario = (ScenarioImpl) ScenarioUtils.createScenario(config);
@@ -40,11 +42,17 @@ public class RunTrajectorySegmentationOnly {
 
 		final Sightings allSightings = new SightingsImpl();
 		new SightingsReader(allSightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
-
 		final ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
 
 		PopulationFromSightings.createPopulationWithRandomRealization(scenario, allSightings, linkToZoneResolver);
 
+		final Counts allCounts = new Counts();
+		new CountsReaderMatsimV1(allCounts).parse(sightingsDir + "/all_counts.xml.gz");
+		final Counts someCounts = new Counts();
+		new CountsReaderMatsimV1(someCounts).parse(sightingsDir + "/calibration_counts.xml.gz");
+
+		scenario.addScenarioElement(Counts.ELEMENT_NAME, allCounts);
+		scenario.addScenarioElement("calibrationCounts", someCounts);
 
 		ClonesConfigGroup clonesConfig = ConfigUtils.addOrGetModule(config, ClonesConfigGroup.NAME, ClonesConfigGroup.class);
 		clonesConfig.setCloneFactor(cloneFactor);
@@ -53,8 +61,9 @@ public class RunTrajectorySegmentationOnly {
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
 			public void install() {
+				install(new CadytsModule());
 				install(new ClonesModule());
-				install(new TrajectorySegmenterModule());
+				install(new TrajectoryReEnricherModule());
 				install(new AbstractModule() {
 					@Override
 					public void install() {
@@ -64,7 +73,11 @@ public class RunTrajectorySegmentationOnly {
 				});
 				addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
 					if (startupEvent.getIteration() == 0) {
-						PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReRealize");
+//						scenario.getPopulation().getPersons().values().forEach(p -> {
+//							p.setSelectedPlan(null);
+//							p.getPlans().clear();
+//						});
+						PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrich");
 						reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
 						scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
 						reEnrich.finish();
@@ -72,6 +85,9 @@ public class RunTrajectorySegmentationOnly {
 				});
 			}
 		});
+		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
+		factory.setCadytsweight(cadytsWeight);
+		controler.setScoringFunctionFactory(factory);
 		controler.run();
 	}
 

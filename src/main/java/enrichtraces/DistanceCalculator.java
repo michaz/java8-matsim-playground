@@ -24,6 +24,7 @@ package enrichtraces;
 
 import cdr.Sighting;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.matsim.api.core.v01.Coord;
@@ -85,7 +86,13 @@ public class DistanceCalculator {
     }
 
     PolynomialSplineFunction getInterpolation(List<Sighting> o2) {
-        return new LinearInterpolator().interpolate(times(o2).toArray(), dists(o2).toArray());
+        if (o2.size() > 1) {
+            return new LinearInterpolator().interpolate(times(o2).toArray(), dists(o2).toArray());
+        } else {
+            return new PolynomialSplineFunction(
+                    new double[]{0.0, 24.0},
+                    new PolynomialFunction[]{new PolynomialFunction(new double[]{0})});
+        }
     }
 
     public void sortDenseByProximityToSparse(final List<Sighting> sparseTrace, List<Map.Entry<Id, List<Sighting>>> denseTraces) {

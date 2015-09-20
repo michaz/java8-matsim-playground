@@ -66,7 +66,7 @@ public class CadytsModule extends AbstractModule {
         bind(PlanToPlanStepBasedOnEvents.class).in(Singleton.class);
         bind(PlansTranslator.class).to(PlanToPlanStepBasedOnEvents.class).in(Singleton.class);
         addControlerListenerBinding().to(CadytsControlerListener.class);
-        addControlerListenerBinding().toProvider(MyControlerListenerProvider.class);
+//        addControlerListenerBinding().toProvider(MyControlerListenerProvider.class);
         addEventHandlerBinding().to(PlanToPlanStepBasedOnEvents.class);
     }
 
