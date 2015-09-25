@@ -203,11 +203,10 @@ public class CreateODDemand extends Application {
         PlanCalcScoreConfigGroup.ActivityParams sightingParam = new PlanCalcScoreConfigGroup.ActivityParams("sighting");
         sightingParam.setTypicalDuration(30.0 * 60);
         config.planCalcScore().addActivityParams(sightingParam);
-        config.planCalcScore().setTraveling_utils_hr(0);
+        config.planCalcScore().getModes().get("car").setMarginalUtilityOfTraveling(0);
+        config.planCalcScore().getModes().get("car").setConstant(0);
+        config.planCalcScore().getModes().get("car").setMonetaryDistanceRate(0);
         config.planCalcScore().setPerforming_utils_hr(0);
-        config.planCalcScore().setTravelingOther_utils_hr(0);
-        config.planCalcScore().setConstantCar(0);
-        config.planCalcScore().setMonetaryDistanceRateCar(0);
 
         final int LAST_ITERATION = 100;
         config.controler().setLastIteration(LAST_ITERATION);

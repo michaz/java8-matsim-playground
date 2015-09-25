@@ -18,7 +18,6 @@ import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.population.ActivityImpl;
 import org.matsim.core.population.LegImpl;
 import org.matsim.core.population.PlanImpl;
-import org.matsim.core.utils.geometry.CoordImpl;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
@@ -233,7 +232,7 @@ public class HelloLatitude {
 	}
 
 	Coord centroid(List<Sighting> segment) {
-		CoordImpl result = new CoordImpl(0,0);
+		Coord result = new Coord(0,0);
 		for (Sighting location : segment) {
 			Coord coord = getCoord(location);
 			result.setXY(result.getX() + coord.getX(), result.getY() + coord.getY());

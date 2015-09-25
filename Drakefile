@@ -3,17 +3,20 @@ BASE=output
 berlin/uncongested3/output-berlin <- [-timecheck]
 	mvn exec:java -Dexec.mainClass="cdr.BerlinRunUncongested3" -Dexec.args="$OUTPUT"
 
+berlin/uncongested3/alternatives/only-heavy-users/sightings <- berlin/uncongested3/output-berlin
+	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
+
 berlin/uncongested3/alternatives/random-heavy-users/sightings <- berlin/uncongested3/output-berlin
 	mvn exec:java -Dexec.mainClass="populationsize.RunRandomHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
+
+berlin/uncongested3/alternatives/worker-heavy-users/sightings <- berlin/uncongested3/output-berlin
+	mvn exec:java -Dexec.mainClass="populationsize.RunWorkerNonWorker" -Dexec.args="$INPUT $OUTPUT"
 
 berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings
 	mvn exec:java -Dexec.mainClass="populationsize.RunSimulation" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"
 
 berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/en-route.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure
 	Rscript en-route.R $INPUT0 $INPUT1 $OUTPUT
-
-berlin/uncongested3/alternatives/only-heavy-users/sightings <- berlin/uncongested3/output-berlin
-	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
 
 berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/sightings
 	mvn exec:java -Dexec.mainClass="segmenttraces.RunTrajectorySegmentationOnly" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"

@@ -152,7 +152,7 @@ public class ActivityTimelineJSONWriter {
 		ScenarioUtils.ScenarioBuilder scenarioBuilder = new ScenarioUtils.ScenarioBuilder(ConfigUtils.createConfig());
 		scenarioBuilder.setNetwork(network);
 		scenarioBuilder.setPopulation(iteration.getPlans());
-		Scenario scenario = scenarioBuilder.createScenario();
+		Scenario scenario = scenarioBuilder.build();
 		EventsToScore eventsToScore = new EventsToScore(scenario, new ScoringFunctionFactory() {
 			@Override
 			public ScoringFunction createNewScoringFunction(Person person) {

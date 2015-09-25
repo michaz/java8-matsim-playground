@@ -171,11 +171,10 @@ public class MultiRateRunResource {
         sightingParam.setTypicalDuration(30.0 * 60);
         config.controler().setWritePlansInterval(100);
         config.planCalcScore().addActivityParams(sightingParam);
-        config.planCalcScore().setTraveling_utils_hr(-6);
         config.planCalcScore().setPerforming_utils_hr(0);
-        config.planCalcScore().setTravelingOther_utils_hr(-6);
-        config.planCalcScore().setConstantCar(0);
-        config.planCalcScore().setMonetaryDistanceRateCar(0);
+        config.planCalcScore().getModes().get("car").setMarginalUtilityOfTraveling(-6);
+        config.planCalcScore().getModes().get("car").setConstant(0);
+        config.planCalcScore().getModes().get("car").setMonetaryDistanceRate(0);
         CadytsConfigGroup cadytsConfig = ConfigUtils.addOrGetModule(config, CadytsConfigGroup.GROUP_NAME, CadytsConfigGroup.class);
         cadytsConfig.setVarianceScale(0.001);
         cadytsConfig.setMinFlowStddev_vehPerHour(2.0);

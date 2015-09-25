@@ -6,7 +6,7 @@ import com.vividsolutions.jts.geom.util.AffineTransformation;
 import com.vividsolutions.jts.geom.util.AffineTransformationBuilder;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.matsim.core.utils.geometry.CoordImpl;
+import org.matsim.api.core.v01.Coord;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,7 +51,7 @@ public class TrajectoryEnricher {
                 .map(s -> {
                     Coordinate coordinate = new Coordinate(network.getCoord(s).getX(), network.getCoord(s).getY());
                     coordinate = transformation.transform(coordinate, coordinate);
-                    return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new CoordImpl(coordinate.x, coordinate.y)));
+                    return new Sighting(a.getAgentId(), (long) s.getTime(), network.locateInCell(new Coord(coordinate.x, coordinate.y)));
                 }).collect(Collectors.toList());
         sparse.addAll(firstIndex+1, newSightings);
     }
