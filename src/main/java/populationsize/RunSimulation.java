@@ -77,7 +77,7 @@ public class RunSimulation {
 //							p.setSelectedPlan(null);
 //							p.getPlans().clear();
 //						});
-						PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReEnrich");
+						PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReRealize");
 						reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
 						scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
 						reEnrich.finish();
