@@ -23,15 +23,24 @@ import org.matsim.counts.CountsReaderMatsimV1;
 public class RunSimulation {
 
 	public static void main(String[] args) {
-		String baseRunDir = args[0];
-		String sightingsDir = args[1];
-		String output = args[2];
+		String alternative = args[0];
+		String baseRunDir = args[1];
+		String sightingsDir = args[2];
+		String output = args[3];
 
 		RunResource baseRun = new RunResource(baseRunDir);
 
 		final double cadytsWeight = 100.0;
 		int lastIteration = 100;
-		double cloneFactor = 1.0;
+		double cloneFactor;
+		if (alternative.equals("full-procedure")) {
+			cloneFactor = 1.0;
+		} else if (alternative.equals("clone")) {
+			cloneFactor = 3.0;
+		} else {
+			throw new RuntimeException();
+		}
+
 		final Config config = MultiRateRunResource.phoneConfig(lastIteration, cloneFactor);
 		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 		config.controler().setOutputDirectory(output);
@@ -63,7 +72,13 @@ public class RunSimulation {
 			public void install() {
 				install(new CadytsModule());
 				install(new ClonesModule());
-				install(new TrajectoryReEnricherModule());
+				if (alternative.equals("full-procedure")) {
+					install(new TrajectoryReEnricherModule());
+				} else if (alternative.equals("clone")) {
+					install(new TrajectoryReRealizerModule());
+				} else {
+					throw new RuntimeException();
+				}
 				install(new AbstractModule() {
 					@Override
 					public void install() {
