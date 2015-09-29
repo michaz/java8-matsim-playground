@@ -9,6 +9,7 @@ import org.matsim.api.core.v01.events.handler.ActivityEndEventHandler;
 import org.matsim.api.core.v01.events.handler.ActivityStartEventHandler;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.mobsim.framework.Steppable;
 import org.matsim.core.mobsim.jdeqsim.Message;
 import org.matsim.core.mobsim.jdeqsim.MessageQueue;
@@ -34,7 +35,7 @@ public class CallProcess implements ActivityStartEventHandler, ActivityEndEventH
         Person person;
 
         double getNextCallTime() {
-            return lastTime + (- Math.log(Math.random()) / (rate / (24*60*60)));
+            return lastTime + (- Math.log(MatsimRandom.getRandom().nextDouble()) / (rate / (24*60*60)));
         }
     }
 

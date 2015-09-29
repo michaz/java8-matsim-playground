@@ -80,6 +80,7 @@ public class RunActivityStructureDistance extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.show();
 		ImageIO.write(SwingFXUtils.fromFXImage(vBox.snapshot(null, null), null), "png", new File(output));
+		primaryStage.close();
 	}
 
 }

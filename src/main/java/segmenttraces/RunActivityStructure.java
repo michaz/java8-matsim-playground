@@ -24,10 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 
 import static segmenttraces.ActivityTimelineChart.*;
 
@@ -46,15 +43,18 @@ public class RunActivityStructure {
 		Network network = baseRun.getConfigAndNetwork().getNetwork();
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
 		population.keySet().retainAll(agents);
+		population = new TreeMap<>(population);
+
 		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
 		originalPopulation.keySet().retainAll(agents);
+		originalPopulation = new TreeMap<>(originalPopulation);
 		final Sightings sightings = new SightingsImpl();
 		new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
 		sightings.getSightingsPerPerson().keySet().retainAll(agents);
 
 		TaskSeriesCollection taskSeriesCollection = new TaskSeriesCollection();
 
-		taskSeriesCollection.add(getSightings(sightings));
+		taskSeriesCollection.add(getSightings(new TreeMap<>(sightings.getSightingsPerPerson())));
 		taskSeriesCollection.add(getTaskSeries("Original", originalPopulation));
 		taskSeriesCollection.add(getTaskSeries("Reconstructed", population));
 
@@ -82,7 +82,7 @@ public class RunActivityStructure {
 	}
 
 	static Set<Id<Person>> getAgentIds() {
-		Set<Id<Person>> agents = new HashSet<>();
+		Set<Id<Person>> agents = new TreeSet<>();
 		agents.add(Id.createPersonId("24122484"));
 		agents.add(Id.createPersonId("14104774"));
 		agents.add(Id.createPersonId("23135904"));

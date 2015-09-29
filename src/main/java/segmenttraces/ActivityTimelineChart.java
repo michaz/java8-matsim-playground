@@ -1,5 +1,6 @@
 package segmenttraces;
 
+import cdr.Sighting;
 import cdr.Sightings;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -32,6 +33,7 @@ import populationsize.RegimeResource;
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class ActivityTimelineChart {
 
@@ -46,7 +48,7 @@ public class ActivityTimelineChart {
 		Sightings sightings = multiRateRun.getSightings("50.0");
 		TaskSeriesCollection taskSeriesCollection = new TaskSeriesCollection();
 
-		taskSeriesCollection.add(getSightings(sightings));
+		taskSeriesCollection.add(getSightings(sightings.getSightingsPerPerson()));
 		taskSeriesCollection.add(getTaskSeries("Original", originalPopulation));
 		taskSeriesCollection.add(getTaskSeries("Reconstructed", population));
 
@@ -103,9 +105,9 @@ public class ActivityTimelineChart {
 		return activities;
 	}
 
-	static TaskSeries getSightings(Sightings sightings) {
+	static TaskSeries getSightings(Map<Id, List<Sighting>> sightings) {
 		TaskSeries activities = new TaskSeries("Sightings");
-		sightings.getSightingsPerPerson().forEach((id, sightingsPerPerson) -> {
+		sightings.forEach((id, sightingsPerPerson) -> {
 			final int[] i = {0};
 			Task t1 = new Task(id.toString(), new Date(0), new Date((24+8) * 60 * 60 * 1000));
 			sightingsPerPerson.stream().forEach(sighting -> {
