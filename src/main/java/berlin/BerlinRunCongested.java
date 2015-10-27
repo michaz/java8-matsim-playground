@@ -1,4 +1,4 @@
-package cdr;
+package berlin;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;

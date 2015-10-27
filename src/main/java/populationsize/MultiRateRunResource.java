@@ -141,10 +141,10 @@ public class MultiRateRunResource {
         return allSightings;
     }
 
-    Counts filterCounts(Counts allCounts) {
+    Counts filterCounts(Counts<Link> allCounts) {
         Counts someCounts = new Counts();
         if (COUNT_LOCATIONS == CountLocations.Random) {
-            for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
+            for (Map.Entry<Id<Link>, Count<Link>> entry : allCounts.getCounts().entrySet()) {
                 if (Math.random() < 0.05) {
                     someCounts.getCounts().put(entry.getKey(), entry.getValue());
                 }
@@ -152,7 +152,7 @@ public class MultiRateRunResource {
         } else if (COUNT_LOCATIONS == CountLocations.Real) {
             final Counts originalCounts = new Counts();
             new CountsReaderMatsimV1(originalCounts).parse(getBaseRun().getWd() + "/2kW.15.output_counts.xml");
-            for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
+            for (Map.Entry<Id<Link>, Count<Link>> entry : allCounts.getCounts().entrySet()) {
                 if (originalCounts.getCounts().keySet().contains(entry.getKey())) {
                     someCounts.getCounts().put(entry.getKey(), entry.getValue());
                 }

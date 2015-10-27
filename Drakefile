@@ -1,7 +1,7 @@
 BASE=output
 
 berlin/uncongested3/output-berlin <- [-timecheck]
-	mvn exec:java -Dexec.mainClass="cdr.BerlinRunUncongested3" -Dexec.args="$OUTPUT"
+	mvn exec:java -Dexec.mainClass="berlin.BerlinRunUncongested3" -Dexec.args="$OUTPUT"
 
 berlin/uncongested3/alternatives/random-heavy-users/sightings <- berlin/uncongested3/output-berlin
 	mvn exec:java -Dexec.mainClass="populationsize.RunRandomHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
@@ -30,3 +30,9 @@ berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only
 	mvn exec:java -Dexec.mainClass="segmenttraces.RunActivityStructure" -Dexec.args="$INPUT0 $INPUT1 $INPUT2 $OUTPUT"
 berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/activity-structure-distance.png <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run
 	mvn exec:java -Dexec.mainClass="segmenttraces.RunActivityStructureDistance" -Dexec.args="--baseRunDir=$INPUT0 --runDir=$INPUT1 --output=$OUTPUT"
+
+berlin/congested3/output-berlin <- [-timecheck]
+	mvn exec:java -Dexec.mainClass="berlin.BerlinRunCongested3" -Dexec.args="$OUTPUT"
+
+berlin/congested3/alternatives/only-heavy-users/sightings <- berlin/congested3/output-berlin
+	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"

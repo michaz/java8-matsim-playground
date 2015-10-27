@@ -61,19 +61,19 @@ public class RunOnlyHeavyUsers {
 		final VolumesAnalyzer groundTruthVolumes = results.get(VolumesAnalyzer.class);
 		new File(output).mkdirs();
 		new SightingsWriter(sightings).write(output + "/sightings.txt");
-		final Counts allCounts = CompareMain.volumesToCounts(baseScenario.getNetwork(), groundTruthVolumes, 1.0);
+		final Counts<Link> allCounts = CompareMain.volumesToCounts(baseScenario.getNetwork(), groundTruthVolumes, 1.0);
 		allCounts.setYear(2012);
 		new CountsWriter(allCounts).write(output + "/all_counts.xml.gz");
-		final Counts someCounts = filterCounts(input, allCounts);
+		final Counts<Link> someCounts = filterCounts(input, allCounts);
 		someCounts.setYear(2012);
 		new CountsWriter(someCounts).write(output + "/calibration_counts.xml.gz");
 	}
 
-	static Counts filterCounts(String input, Counts allCounts) {
-		Counts someCounts = new Counts();
-		final Counts originalCounts = new Counts();
+	static Counts filterCounts(String input, Counts<Link> allCounts) {
+		Counts<Link> someCounts = new Counts<>();
+		final Counts<Link> originalCounts = new Counts<>();
 		new CountsReaderMatsimV1(originalCounts).parse(input + "/output_counts.xml");
-		for (Map.Entry<Id<Link>, Count> entry : allCounts.getCounts().entrySet()) {
+		for (Map.Entry<Id<Link>, Count<Link>> entry : allCounts.getCounts().entrySet()) {
 			if (originalCounts.getCounts().keySet().contains(entry.getKey())) {
 				someCounts.getCounts().put(entry.getKey(), entry.getValue());
 			}

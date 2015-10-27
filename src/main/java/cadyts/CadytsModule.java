@@ -34,7 +34,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.contrib.cadyts.car.PlanToPlanStepBasedOnEvents;
 import org.matsim.contrib.cadyts.general.CadytsBuilder;
 import org.matsim.contrib.cadyts.general.CadytsConfigGroup;
-import org.matsim.contrib.cadyts.general.LookUp;
+import org.matsim.contrib.cadyts.general.LookUpItemFromId;
 import org.matsim.contrib.cadyts.general.PlansTranslator;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
@@ -80,15 +80,15 @@ public class CadytsModule extends AbstractModule {
         @Override
         public AnalyticalCalibrator<Link> get() {
             CadytsConfigGroup cadytsConfig = ConfigUtils.addOrGetModule(scenario.getConfig(), CadytsConfigGroup.GROUP_NAME, CadytsConfigGroup.class);
-            LookUp<Link> linkLookUp = new LookUp<Link>() {
+            LookUpItemFromId<Link> linkLookUp = new LookUpItemFromId<Link>() {
                 @Override
-                public Link lookUp(Id id) {
+                public Link getItem(Id id) {
                     return scenario.getNetwork().getLinks().get(id);
                 }
             };
             Counts calibrationCounts = (Counts) scenario.getScenarioElement("calibrationCounts");
             cadytsConfig.setCalibratedItems(calibrationCounts.getCounts().keySet());
-            AnalyticalCalibrator<Link> linkAnalyticalCalibrator = CadytsBuilder.buildCalibrator(scenario.getConfig(), calibrationCounts, linkLookUp, Link.class);
+            AnalyticalCalibrator<Link> linkAnalyticalCalibrator = CadytsBuilder.buildCalibratorAndAddMeasurements(scenario.getConfig(), calibrationCounts, linkLookUp, Link.class);
             for (MeasurementLoader<Link> measurementLoader : measurementLoaders) {
                 measurementLoader.load(linkAnalyticalCalibrator);
             }

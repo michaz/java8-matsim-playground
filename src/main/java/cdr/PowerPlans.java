@@ -10,9 +10,6 @@ import org.matsim.core.population.LegImpl;
 import org.matsim.core.population.routes.NetworkRoute;
 import org.matsim.core.router.*;
 import org.matsim.core.router.TripStructureUtils.Trip;
-import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutilityFactory;
-import org.matsim.core.router.util.DijkstraFactory;
-import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.core.utils.io.UncheckedIOException;
 import util.PowerList;
 
@@ -27,13 +24,7 @@ public class PowerPlans {
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(file);
-			TripRouter tripRouter = new TripRouterProviderImpl(
-					scenario, 
-					new OnlyTimeDependentTravelDisutilityFactory(),
-					new FreeSpeedTravelTime(),
-					new DijkstraFactory(),
-					null)
-			.get();
+			TripRouter tripRouter = new TripRouterFactoryBuilderWithDefaults().build(scenario).get();
 			for (Person person : scenario.getPopulation().getPersons().values()) {
 				Plan plan = person.getSelectedPlan();
 				double distance = PowerPlans.distance(scenario.getNetwork(), plan);
