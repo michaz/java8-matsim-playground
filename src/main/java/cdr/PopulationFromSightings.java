@@ -10,7 +10,6 @@ import org.matsim.core.replanning.selectors.RandomPlanSelector;
 import org.matsim.core.router.ActivityWrapperFacility;
 import org.matsim.core.router.PlanRouter;
 import org.matsim.core.router.TripRouter;
-import org.matsim.core.scenario.ScenarioImpl;
 import org.matsim.core.trafficmonitoring.FreeSpeedTravelTime;
 import org.matsim.population.algorithms.ParallelPersonAlgorithmRunner;
 import org.matsim.population.algorithms.ParallelPersonAlgorithmRunner.PersonAlgorithmProvider;
@@ -246,7 +245,7 @@ public class PopulationFromSightings {
 
 
 
-    public static void preparePopulation(final ScenarioImpl scenario, final ZoneTracker.LinkToZoneResolver linkToZoneResolver2, final Sightings allSightings) {
+    public static void preparePopulation(final Scenario scenario, final ZoneTracker.LinkToZoneResolver linkToZoneResolver2, final Sightings allSightings) {
         ParallelPersonAlgorithmRunner.run(scenario.getPopulation(), 8, new org.matsim.population.algorithms.XY2Links(scenario));
         ParallelPersonAlgorithmRunner.run(scenario.getPopulation(), 8, new PersonAlgorithmProvider() {
 

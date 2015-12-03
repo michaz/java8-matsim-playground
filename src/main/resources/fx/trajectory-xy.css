@@ -1,0 +1,16 @@
+.chart-series-line {
+    -fx-stroke-width: 2px;
+    -fx-effect: null;
+}
+
+/*sparse trace*/
+.default-color2.chart-series-line { -fx-stroke: black; }
+.default-color2.chart-line-symbol { -fx-background-color: black, white; }
+
+/*dense trace*/
+.default-color3.chart-series-line { -fx-stroke: red; }
+.default-color3.chart-line-symbol { -fx-background-color: red, white; }
+
+/*enriched trace*/
+.default-color4.chart-series-line { -fx-stroke: black; }
+.default-color4.chart-line-symbol { -fx-background-color: black, white; }

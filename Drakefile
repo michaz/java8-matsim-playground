@@ -21,6 +21,10 @@ berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/run <- be
 berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/en-route.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/run
 	Rscript en-route.R $INPUT0 $INPUT1 $OUTPUT
 
+%trajectorySimilarityApp <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings
+	mvn exec:java -Dexec.mainClass="fx.TrajectorySimilarityApp" -Dexec.args="--baseRunDir=$INPUT0 --sightingsDir=$INPUT1"
+berlin/uncongested3/alternatives/worker-heavy-users/trajectory-similarity-figures <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings
+	mvn exec:java -Dexec.mainClass="fx.RunTrajectorySimilarityFigures" -Dexec.args="--baseRunDir=$INPUT0 --sightingsDir=$INPUT1 --output=$OUTPUT --sparse=17167184 --dense=16159661"
 
 berlin/uncongested3/alternatives/only-heavy-users/sightings <- berlin/uncongested3/output-berlin
 	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"

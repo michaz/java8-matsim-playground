@@ -1,6 +1,5 @@
 package segmenttraces;
 
-import cadyts.CadytsModule;
 import cdr.*;
 import clones.ClonesConfigGroup;
 import clones.ClonesModule;
@@ -13,12 +12,9 @@ import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.ReplanningContext;
-import org.matsim.core.scenario.ScenarioImpl;
+import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
-import org.matsim.counts.Counts;
-import org.matsim.counts.CountsReaderMatsimV1;
-import populationsize.CadytsAndCloneScoringFunctionFactory;
 import populationsize.MultiRateRunResource;
 import populationsize.RunResource;
 
@@ -35,7 +31,7 @@ public class RunTrajectorySegmentationOnly {
 		RunResource baseRun = new RunResource(baseRunDir);
 
 		Scenario baseScenario = baseRun.getConfigAndNetwork();
-		final ScenarioImpl scenario = (ScenarioImpl) ScenarioUtils.createScenario(config);
+		final MutableScenario scenario = (MutableScenario) ScenarioUtils.createScenario(config);
 		scenario.setNetwork(baseScenario.getNetwork());
 
 		final Sightings allSightings = new SightingsImpl();

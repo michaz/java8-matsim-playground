@@ -47,7 +47,7 @@ public class TrajectoryChart extends NonReorderingLineChart<Number, Number> {
 
     public TrajectoryChart() {
         super(new NumberAxis(), new NumberAxis());
-        getStylesheets().add(TrajectorySimilarityApp.class.getResource("StockLineChart.css").toExternalForm());
+        getStylesheets().add(TrajectorySimilarityApp.class.getResource("trajectory-xy.css").toExternalForm());
         setAnimated(false);
         setLegendVisible(false);
         NumberAxis xAxis = (NumberAxis) getXAxis();

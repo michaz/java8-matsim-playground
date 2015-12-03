@@ -42,6 +42,8 @@ public class DistanceFromHomeChart {
     public final LineChart<Number, Number> chart;
     final ObjectProperty<ObservableList<XYChart.Data<Number, Number>>> sparseXYData;
     final ObjectProperty<ObservableList<XYChart.Data<Number, Number>>> denseXYData;
+    private boolean denseVisible = true;
+    private final XYChart.Series<Number, Number> denseDataSeries;
 
     public DistanceFromHomeChart(DistanceCalculator distanceCalculator) {
         this.distanceCalculator = distanceCalculator;
@@ -58,12 +60,12 @@ public class DistanceFromHomeChart {
         XYChart.Series<Number, Number> sparseDataSeries = new XYChart.Series<>();
         sparseXYData = sparseDataSeries.dataProperty();
         sparseXYData.bind(new MyBinding(sparse));
-        XYChart.Series<Number, Number> denseDataSeries = new XYChart.Series<>();
+        denseDataSeries = new XYChart.Series<>();
         denseXYData = denseDataSeries.dataProperty();
         denseXYData.bind(new MyBinding(dense));
 
 
-        chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("StockLineChart.css").toExternalForm());
+        chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("trajectory-similarity.css").toExternalForm());
         chart.setAnimated(false);
         chart.setLegendVisible(false);
         chart.getData().add(sparseDataSeries);
@@ -92,5 +94,12 @@ public class DistanceFromHomeChart {
         }
     }
 
+    void setDenseVisible(boolean denseVisible) {
+        this.denseVisible = denseVisible;
+        denseDataSeries.getNode().setVisible(this.denseVisible);
+//      denseDataSeries.dataProperty().addListener(observable -> {
+        denseDataSeries.getData().forEach(data -> data.getNode().setVisible(denseVisible));
+//      });
+    }
 
 }

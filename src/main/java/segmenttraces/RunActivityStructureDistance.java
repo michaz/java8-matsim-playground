@@ -3,6 +3,7 @@ package segmenttraces;
 import cdr.Sighting;
 import enrichtraces.DistanceCalculator;
 import fx.DistanceFromHomeChart;
+import fx.TrajectorySimilarityApp;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
@@ -66,6 +67,7 @@ public class RunActivityStructureDistance extends Application {
 		final VBox vBox = new VBox();
 		for (Id personId : RunActivityStructure.getAgentIds()) {
 			DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
+			chart.chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("activity-structure-distance.css").toExternalForm());
 			chart.sparse.setAll(plan2sightings(originalPopulation.get(personId), personId));
 			chart.dense.setAll(plan2sightings(population.get(personId), personId));
 			chart.chart.titleProperty().set(String.format("Individual %s, dist %d vs %d",

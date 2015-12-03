@@ -48,11 +48,7 @@ import javafx.util.Callback;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.utils.io.IOUtils;
-import populationsize.ExperimentResource;
-import populationsize.MultiRateRunResource;
-import populationsize.RegimeResource;
 import populationsize.RunResource;
 
 import java.util.HashMap;
@@ -96,12 +92,10 @@ public class TrajectorySimilarityApp extends Application {
     }
 
     public Parent createContent() {
-        String sightingsDir="output/berlin/uncongested3/alternatives/random-heavy-users/sightings";
-        String baseRunDir="output/berlin/uncongested3/output-berlin";
         final Sightings sightings = new SightingsImpl();
-        new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
-        RunResource baseRun = new RunResource(baseRunDir);
-        Scenario baseScenario = baseRun.getConfigAndNetwork();
+        new SightingsReader(sightings).read(IOUtils.getInputStream(getParameters().getNamed().get("sightingsDir") + "/sightings.txt"));
+
+        RunResource baseRun = new RunResource(getParameters().getNamed().get("baseRunDir"));
         final Map<Id, List<Sighting>> dense = new HashMap<>();
         final Map<Id, List<Sighting>> sparse = new HashMap<>();
         for (Map.Entry<Id, List<Sighting>> entry : sightings.getSightingsPerPerson().entrySet()) {
@@ -112,7 +106,7 @@ public class TrajectorySimilarityApp extends Application {
             }
         }
 
-        distanceCalculator = new DistanceCalculator(baseScenario.getNetwork());
+        distanceCalculator = new DistanceCalculator(baseRun.getConfigAndNetwork().getNetwork());
         ListView<Map.Entry<Id, List<Sighting>>> sparseView = createLeftView(() -> sparse);
         ListView<Map.Entry<Id, List<Sighting>>> denseView = createRightView(() -> dense, sparseView.getSelectionModel().selectedItemProperty());
 

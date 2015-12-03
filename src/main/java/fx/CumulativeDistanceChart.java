@@ -63,7 +63,7 @@ public class CumulativeDistanceChart {
         denseXYData.bind(new MyBinding(dense));
 
 
-        chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("StockLineChart.css").toExternalForm());
+        chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("trajectory-similarity.css").toExternalForm());
         chart.setAnimated(false);
         chart.setLegendVisible(false);
         chart.getData().add(sparseDataSeries);

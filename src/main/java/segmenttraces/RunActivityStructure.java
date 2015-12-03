@@ -1,5 +1,6 @@
 package segmenttraces;
 
+import cdr.Sighting;
 import cdr.Sightings;
 import cdr.SightingsImpl;
 import cdr.SightingsReader;
@@ -25,6 +26,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 import static segmenttraces.ActivityTimelineChart.*;
 
@@ -35,28 +37,33 @@ public class RunActivityStructure {
 		String sightingsDir = args[1];
 		String runDir = args[2];
 		String output = args[3];
-		Set<Id<Person>> agents = getAgentIds();
+		Collection<Id<Person>> agents = getAgentIds();
 		RunResource run = new RunResource(runDir);
 		RunResource baseRun = new RunResource(baseRunDir);
 
 		IterationResource iteration = run.getIteration(0);
 		Network network = baseRun.getConfigAndNetwork().getNetwork();
-		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
-		population.keySet().retainAll(agents);
-		population = new TreeMap<>(population);
 
-		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
-		originalPopulation.keySet().retainAll(agents);
-		originalPopulation = new TreeMap<>(originalPopulation);
 		final Sightings sightings = new SightingsImpl();
 		new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
 		sightings.getSightingsPerPerson().keySet().retainAll(agents);
 
+		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
+		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
+		LinkedHashMap<Id, List<Sighting>> sortedSightings = new LinkedHashMap<>();
+		LinkedHashMap<Id<Person>, Plan> sortedPopulation = new LinkedHashMap<>();
+		LinkedHashMap<Id<Person>, Plan> sortedOriginalPopulation = new LinkedHashMap<>();
+		for (Id<Person> personId : getAgentIds()) {
+			sortedSightings.put(personId, sightings.getSightingsPerPerson().get(personId));
+			sortedPopulation.put(personId, population.get(personId));
+			sortedOriginalPopulation.put(personId, originalPopulation.get(personId));
+		}
+
 		TaskSeriesCollection taskSeriesCollection = new TaskSeriesCollection();
 
-		taskSeriesCollection.add(getSightings(new TreeMap<>(sightings.getSightingsPerPerson())));
-		taskSeriesCollection.add(getTaskSeries("Original", originalPopulation));
-		taskSeriesCollection.add(getTaskSeries("Reconstructed", population));
+		taskSeriesCollection.add(getSightings(sortedSightings));
+		taskSeriesCollection.add(getTaskSeries("Original", sortedOriginalPopulation));
+		taskSeriesCollection.add(getTaskSeries("Reconstructed", sortedPopulation));
 
 		SlidingGanttCategoryDataset dataset = new SlidingGanttCategoryDataset(taskSeriesCollection, 0, 5);
 		JFreeChart ganttChart = ChartFactory.createGanttChart("Activities", "Agent", "Time", dataset);
@@ -81,8 +88,8 @@ public class RunActivityStructure {
 
 	}
 
-	static Set<Id<Person>> getAgentIds() {
-		Set<Id<Person>> agents = new TreeSet<>();
+	static Collection<Id<Person>> getAgentIds() {
+		Collection<Id<Person>> agents = new ArrayList<>();
 		agents.add(Id.createPersonId("24122484"));
 		agents.add(Id.createPersonId("14104774"));
 		agents.add(Id.createPersonId("23135904"));

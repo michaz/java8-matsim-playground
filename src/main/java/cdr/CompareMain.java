@@ -21,7 +21,7 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.PlanStrategyImpl;
-import org.matsim.core.scenario.ScenarioImpl;
+import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.counts.Count;
@@ -209,7 +209,7 @@ public class CompareMain {
 		config.strategy().addStrategySettings(stratSets) ;
 
 
-		final ScenarioImpl scenario2 = (ScenarioImpl) ScenarioUtils.createScenario(config);
+		final MutableScenario scenario2 = (MutableScenario) ScenarioUtils.createScenario(config);
 		scenario2.setNetwork(network);
 
 		PopulationFromSightings.createPopulationWithTwoPlansEach(scenario2, linkToZoneResolver, allSightings);
