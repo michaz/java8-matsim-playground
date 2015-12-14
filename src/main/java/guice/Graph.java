@@ -22,15 +22,12 @@
 
 package guice;
 
-import com.google.inject.Guice;
-import com.google.inject.grapher.graphviz.GraphvizGrapher;
-import com.google.inject.grapher.graphviz.GraphvizModule;
 import org.matsim.analysis.IterationStopWatch;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.*;
 import org.matsim.core.controler.corelisteners.ControlerDefaultCoreListenersModule;
+import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -53,7 +50,7 @@ public class Graph {
                 new AbstractModule() {
                     @Override
                     public void install() {
-                        bind(Scenario.class).toInstance(ScenarioUtils.createScenario(config));
+                        install(new ScenarioByInstanceModule(ScenarioUtils.createScenario(config)));
                         bind(OutputDirectoryHierarchy.class).asEagerSingleton();
                         bind(IterationStopWatch.class).asEagerSingleton();
                         bind(ControlerI.class).to(Controler.class).asEagerSingleton();

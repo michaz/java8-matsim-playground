@@ -10,7 +10,6 @@ import com.google.inject.grapher.*;
 import com.google.inject.grapher.graphviz.*;
 import com.google.inject.spi.InjectionPoint;
 import com.google.inject.spi.ProviderBinding;
-import com.google.inject.spi.ProviderInstanceBinding;
 import com.google.inject.util.Types;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
