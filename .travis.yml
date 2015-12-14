@@ -2,6 +2,8 @@ addons:
   apt:
     packages:
       - graphviz
+  artifacts: true
+  s3_region: "Frankfurt"
 language: java
 jdk:
   - oraclejdk8
