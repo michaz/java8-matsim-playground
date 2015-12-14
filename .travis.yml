@@ -2,7 +2,6 @@ addons:
   apt:
     packages:
       - graphviz
-  s3_region: "eu-central-1" # Frankfurt
   artifacts:
     paths:
       - output
