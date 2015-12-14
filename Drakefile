@@ -43,3 +43,5 @@ berlin/congested3/alternatives/only-heavy-users/sightings <- berlin/congested3/o
 
 guice <- [-timecheck]
 	mvn exec:java -Dexec.mainClass="guice.Graph" -Dexec.args="$OUTPUT"
+guice.svg <- guice/guice.dot
+	dot -Tsvg -o $INPUT > $OUTPUT

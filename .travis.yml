@@ -1,7 +1,11 @@
+addons:
+  apt:
+    packages:
+      - graphviz
 language: java
 jdk:
   - oraclejdk8
 script:
   - curl https://raw.githubusercontent.com/Factual/drake/master/bin/drake > drake
   - chmod 755 drake
-  - ./drake +^guice
+  - ./drake -a guice.svg
