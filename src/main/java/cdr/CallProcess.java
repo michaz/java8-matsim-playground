@@ -1,6 +1,5 @@
 package cdr;
 
-import jdeqsimengine.SteppableScheduler;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.ActivityEndEvent;
@@ -13,6 +12,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.mobsim.framework.Steppable;
 import org.matsim.core.mobsim.jdeqsim.Message;
 import org.matsim.core.mobsim.jdeqsim.MessageQueue;
+import org.matsim.core.mobsim.qsim.jdeqsimengine.SteppableScheduler;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
