@@ -3,7 +3,7 @@ addons:
     packages:
       - graphviz
   s3_region: "eu-central-1" # Frankfurt
-  artifacts: true
+  artifacts:
     paths:
       -${TRAVIS_BUILD_DIR}/output
 language: java
