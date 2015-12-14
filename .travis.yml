@@ -5,7 +5,7 @@ addons:
   s3_region: "eu-central-1" # Frankfurt
   artifacts:
     paths:
-      -${TRAVIS_BUILD_DIR}/output
+      - output
 language: java
 jdk:
   - oraclejdk8
