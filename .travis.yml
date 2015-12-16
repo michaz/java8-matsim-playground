@@ -1,3 +1,14 @@
+addons:
+  apt:
+    packages:
+      - graphviz
+  artifacts:
+    paths:
+      - output
 language: java
 jdk:
-    - oraclejdk8
+  - oraclejdk8
+script:
+  - curl https://raw.githubusercontent.com/Factual/drake/master/bin/drake > drake
+  - chmod 755 drake
+  - ./drake -a guice.svg
