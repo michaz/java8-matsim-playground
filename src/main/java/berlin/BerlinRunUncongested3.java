@@ -38,21 +38,7 @@ public class BerlinRunUncongested3 {
 	final static String BERLIN_PATH = "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/";
 	
 	public static void main(String[] args) {
-		Config config = new Config();
-		config.addCoreModules();
-		new ConfigReader(config).parse(BerlinRunUncongested3.class.getResourceAsStream("2kW.15.xml"));
-		config.plans().setInputFile(BERLIN_PATH + "plans/baseplan_car_only.xml.gz");
-		config.network().setInputFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
-		config.counts().setCountsFileName(BERLIN_PATH + "counts/iv_counts/vmz_di-do.xml");
-		config.controler().setOutputDirectory(args[0]);
-		config.counts().setOutputFormat("kml");
-		config.counts().setWriteCountsInterval(1);
-		config.counts().setAverageCountsOverIterations(1);
-		config.controler().setLastIteration(0);
-		config.qsim().setFlowCapFactor(100);
-		config.qsim().setStorageCapFactor(100);
-		config.qsim().setRemoveStuckVehicles(false);
-		config.planCalcScore().setWriteExperiencedPlans(true);
+		Config config = getConfig(args[0]);
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
@@ -68,6 +54,25 @@ public class BerlinRunUncongested3 {
 			}
 		});
 		controller.run();
+	}
+
+	public static Config getConfig(String outputDirectory) {
+		Config config = new Config();
+		config.addCoreModules();
+		new ConfigReader(config).parse(BerlinRunUncongested3.class.getResourceAsStream("2kW.15.xml"));
+		config.plans().setInputFile(BERLIN_PATH + "plans/baseplan_car_only.xml.gz");
+		config.network().setInputFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
+		config.counts().setCountsFileName(BERLIN_PATH + "counts/iv_counts/vmz_di-do.xml");
+		config.controler().setOutputDirectory(outputDirectory);
+		config.counts().setOutputFormat("kml");
+		config.counts().setWriteCountsInterval(1);
+		config.counts().setAverageCountsOverIterations(1);
+		config.controler().setLastIteration(0);
+		config.qsim().setFlowCapFactor(100);
+		config.qsim().setStorageCapFactor(100);
+		config.qsim().setRemoveStuckVehicles(false);
+		config.planCalcScore().setWriteExperiencedPlans(true);
+		return config;
 	}
 
 }

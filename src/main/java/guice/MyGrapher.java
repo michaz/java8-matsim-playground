@@ -11,13 +11,11 @@ import com.google.inject.grapher.graphviz.*;
 import com.google.inject.spi.InjectionPoint;
 import com.google.inject.spi.ProviderBinding;
 import com.google.inject.util.Types;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.controler.listener.ControlerListener;
 import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.mobsim.framework.listeners.MobsimListener;
 import org.matsim.core.replanning.PlanStrategy;
-import org.matsim.core.replanning.selectors.GenericPlanSelector;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
 import org.matsim.core.router.util.TravelTime;
@@ -45,11 +43,10 @@ public class MyGrapher extends AbstractInjectorGrapher {
 											NodeId.newTypeId(((ProviderBinding<?>) binding).getProvidedKey())));
 								}
 							}
-							allAliases.addAll(getStringMapBinderAliases(TravelTime.class, bindings));
-							allAliases.addAll(getStringMapBinderAliases(TravelDisutilityFactory.class, bindings));
-							allAliases.addAll(getStringMapBinderAliases(RoutingModule.class, bindings));
-							allAliases.addAll(getStringMapBinderAliases(PlanStrategy.class, bindings));
-							allAliases.addAll(getStringMapBinderAliases(Types.newParameterizedType(GenericPlanSelector.class, Plan.class, Person.class), bindings));
+							allAliases.addAll(getMapBinderAliases(String.class, TravelTime.class, bindings));
+							allAliases.addAll(getMapBinderAliases(String.class, TravelDisutilityFactory.class, bindings));
+							allAliases.addAll(getMapBinderAliases(String.class, RoutingModule.class, bindings));
+							allAliases.addAll(getMapBinderAliases(StrategyConfigGroup.StrategySettings.class, PlanStrategy.class, bindings));
 							allAliases.addAll(getMultibinderAliases(ControlerListener.class, bindings));
 							allAliases.addAll(getMultibinderAliases(SnapshotWriter.class, bindings));
 							allAliases.addAll(getMultibinderAliases(MobsimListener.class, bindings));
@@ -76,17 +73,17 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		return aliases;
 	}
 
-	static List<Alias> getStringMapBinderAliases(Type aClass, Iterable<Binding<?>> bindings) {
+	static <K> List<Alias> getMapBinderAliases(Class<K> keyType, Type aClass, Iterable<Binding<?>> bindings) {
 		List<Alias> aliases = Lists.newArrayList();
-		NodeId toId = NodeId.newTypeId(Key.get(Types.mapOf(String.class, aClass)));
+		NodeId toId = NodeId.newTypeId(Key.get(Types.mapOf(keyType, aClass)));
 		ParameterizedType comGoogleInjectProvider = Types.newParameterizedType(com.google.inject.Provider.class, aClass);
 		ParameterizedType javaxInjectProvider = Types.newParameterizedType(Provider.class, aClass);
-		ParameterizedType stringToComGoogleInjectProviderMapEntry = Types.newParameterizedTypeWithOwner(Map.class, Map.Entry.class, String.class, comGoogleInjectProvider);
+		ParameterizedType stringToComGoogleInjectProviderMapEntry = Types.newParameterizedTypeWithOwner(Map.class, Map.Entry.class, keyType, comGoogleInjectProvider);
 		aliases.add(new Alias(NodeId.newInstanceId(Key.get(Types.setOf(stringToComGoogleInjectProviderMapEntry))), toId));
-		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.mapOf(String.class, comGoogleInjectProvider))), toId));
-		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.mapOf(String.class, javaxInjectProvider))), toId));
-		aliases.add(new Alias(NodeId.newInstanceId(Key.get(Types.mapOf(String.class, comGoogleInjectProvider))), toId));
-		aliases.add(new Alias(NodeId.newInstanceId(Key.get(Types.mapOf(String.class, aClass))), toId));
+		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.mapOf(keyType, comGoogleInjectProvider))), toId));
+		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.mapOf(keyType, javaxInjectProvider))), toId));
+		aliases.add(new Alias(NodeId.newInstanceId(Key.get(Types.mapOf(keyType, comGoogleInjectProvider))), toId));
+		aliases.add(new Alias(NodeId.newInstanceId(Key.get(Types.mapOf(keyType, aClass))), toId));
 		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.setOf(stringToComGoogleInjectProviderMapEntry))), toId));
 		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.newParameterizedType(Collection.class, Types.newParameterizedType(Provider.class, stringToComGoogleInjectProviderMapEntry)))), toId));
 		aliases.add(new Alias(NodeId.newTypeId(Key.get(Types.newParameterizedType(Collection.class, Types.newParameterizedType(com.google.inject.Provider.class, stringToComGoogleInjectProviderMapEntry)))), toId));
