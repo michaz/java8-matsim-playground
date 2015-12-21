@@ -22,13 +22,9 @@
 
 package guice;
 
-import org.matsim.analysis.IterationStopWatch;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.*;
-import org.matsim.core.controler.corelisteners.ControlerDefaultCoreListenersModule;
-import org.matsim.core.scenario.ScenarioByInstanceModule;
-import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,41 +33,33 @@ import java.io.PrintWriter;
 
 public class Graph {
 
-    public static void main(String[] args) throws IOException {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public static void main(String[] args) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+        String moduleToGraph = args[0];
+        String outputDirectory = args[1];
+        Config configToGraph = ConfigUtils.createConfig();
+        configToGraph.controler().setOutputDirectory(outputDirectory);
+        configToGraph.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 
+        Class<?> moduleClass = Class.forName(moduleToGraph);
+        Object module = moduleClass.newInstance();
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final PrintWriter out = new PrintWriter(baos);
-        Config config = ConfigUtils.createConfig();
-        config.controler().setOutputDirectory(args[0]);
-        config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
-        Injector matsimInjector = Injector.createInjector(config,
-                new ControlerDefaultsModule(),
-                new ControlerDefaultCoreListenersModule(),
-                new AbstractModule() {
-                    @Override
-                    public void install() {
-                        install(new ScenarioByInstanceModule(ScenarioUtils.createScenario(config)));
-                        bind(OutputDirectoryHierarchy.class).asEagerSingleton();
-                        bind(IterationStopWatch.class).asEagerSingleton();
-                        bind(ControlerI.class).to(Controler.class).asEagerSingleton();
-                    }
-                });
+        Injector matsimInjector = Injector.createInjector(configToGraph, (AbstractModule) module);
         matsimInjector.getInstance(ControlerI.class);
         try {
-
             MyGrapher renderer = new MyGrapher();
             renderer.setRankdir("LR");
             renderer.setOut(out);
             renderer.graph(matsimInjector.getInstance(com.google.inject.Injector.class));
 
-            File file = new File(args[0]+"/guice.dot");
+            File file = new File(outputDirectory +"/guice.dot");
             PrintWriter fileOut = new PrintWriter(file);
             String s = baos.toString("UTF-8");
             s = fixGrapherBug(s);
             s = hideClassPaths(s);
             fileOut.write(s);
             fileOut.close();
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

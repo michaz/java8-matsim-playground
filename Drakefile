@@ -42,6 +42,6 @@ berlin/congested3/alternatives/only-heavy-users/sightings <- berlin/congested3/o
 	mvn exec:java -Dexec.mainClass="populationsize.RunOnlyHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
 
 guice <- [-timecheck]
-	mvn exec:java -Dexec.mainClass="guice.Graph" -Dexec.args="$OUTPUT"
+	mvn exec:java -Dexec.mainClass="guice.Graph" -Dexec.args="guice.MyModule $OUTPUT"
 guice.svg <- guice
 	dot -Tsvg -o$OUTPUT $INPUT/guice.dot
