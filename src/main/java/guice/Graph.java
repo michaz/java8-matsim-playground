@@ -34,9 +34,11 @@ import java.io.PrintWriter;
 public class Graph {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
-        String moduleToGraph = args[0];
-        String outputDirectory = args[1];
-        Config configToGraph = ConfigUtils.createConfig();
+        String configFileToGraph = args[0];
+        String moduleToGraph = args[1];
+        String outputDirectory = args[2];
+
+        Config configToGraph = ConfigUtils.loadConfig(configFileToGraph);
         configToGraph.controler().setOutputDirectory(outputDirectory);
         configToGraph.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 

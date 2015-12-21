@@ -24,7 +24,7 @@ package berlin;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigReader;
+import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.ShutdownEvent;
@@ -33,37 +33,41 @@ import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
 
+import javax.inject.Inject;
+
 public class BerlinRunCongested3 {
 	
 	final static String BERLIN_PATH = "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/";
 	
 	public static void main(String[] args) {
-		Config config = new Config();
-		config.addCoreModules();
-		new ConfigReader(config).parse(BerlinRunCongested3.class.getResourceAsStream("2kW.15.xml"));
+		String configFile = args[0];
+		String outputDirectory = args[1];
+
+		Config config = ConfigUtils.loadConfig(configFile);
 		config.plans().setInputFile(BERLIN_PATH + "plans/baseplan_car_only.xml.gz");
 		config.network().setInputFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
 		config.counts().setCountsFileName(BERLIN_PATH + "counts/iv_counts/vmz_di-do.xml");
-		config.controler().setOutputDirectory(args[0]);
+		config.controler().setOutputDirectory(outputDirectory);
 		config.counts().setOutputFormat("kml");
 		config.counts().setWriteCountsInterval(1);
 		config.counts().setAverageCountsOverIterations(1);
+		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		config.controler().setLastIteration(30);
 		config.strategy().setFractionOfIterationsToDisableInnovation(0.8);
 		config.qsim().setRemoveStuckVehicles(false);
 		config.planCalcScore().setWriteExperiencedPlans(true);
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
-
-
-
 		final Controler controller = new Controler(scenario);
-		controller.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		controller.addControlerListener(new ShutdownListener() {
+
+			@Inject
+			OutputDirectoryHierarchy controlerIO;
+
 			@Override
 			public void notifyShutdown(ShutdownEvent shutdownEvent) {
 				new CountsWriter((Counts) scenario.getScenarioElement(Counts.ELEMENT_NAME))
-						.write(controller.getInjector().getInstance(OutputDirectoryHierarchy.class).getOutputFilename("output_counts.xml"));
+						.write(controlerIO.getOutputFilename("output_counts.xml"));
 			}
 		});
 		controller.run();

@@ -12,7 +12,7 @@ class MyModule extends AbstractModule {
     public void install() {
         install(new ControlerDefaultsModule());
         install(new ControlerDefaultCoreListenersModule());
-        install(new ScenarioByInstanceModule(ScenarioUtils.createScenario(getConfig())));
+        install(new ScenarioByInstanceModule(ScenarioUtils.loadScenario(getConfig())));
         bind(OutputDirectoryHierarchy.class).asEagerSingleton();
         bind(IterationStopWatch.class).asEagerSingleton();
         bind(ControlerI.class).to(Controler.class).asEagerSingleton();
