@@ -2,7 +2,7 @@
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v1.dtd"
   [
    <!ENTITY NETWORK        "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/network.xml.gz">
-   <!ENTITY PLANS          "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/plans/baseplan_900s.xml.gz">
+   <!ENTITY PLANS          "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/plans/baseplan_car_only.xml.gz">
    <!ENTITY COUNTS         "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/vmz_di-do.xml">
    <!ENTITY WRITEINTERVAL  "20">
    <!ENTITY LASTITER  "100">

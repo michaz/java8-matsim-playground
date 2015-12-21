@@ -15,15 +15,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Created by michaelzilske on 08/10/15.
- */
+
 public class AnalyzeRoadCategories {
+
+    final static String BERLIN_PATH = "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/";
 
     public static void main(String[] args) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         ObjectAttributes linkAttributes = new ObjectAttributes();
-        new MatsimNetworkReader(scenario).readFile(BerlinRunUncongested3.BERLIN_PATH + "counts/iv_counts/network.xml.gz");
+        new MatsimNetworkReader(scenario).readFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
         Set<RoadCategoryClusterableLink> rcs = new HashSet<>();
         for (Link link : scenario.getNetwork().getLinks().values()) {
             RoadCategoryClusterableLink rc = new RoadCategoryClusterableLink(link);

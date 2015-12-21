@@ -36,17 +36,12 @@ import org.matsim.counts.CountsWriter;
 import javax.inject.Inject;
 
 public class BerlinRunCongested3 {
-	
-	final static String BERLIN_PATH = "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/";
-	
+
 	public static void main(String[] args) {
 		String configFile = args[0];
 		String outputDirectory = args[1];
 
 		Config config = ConfigUtils.loadConfig(configFile);
-		config.plans().setInputFile(BERLIN_PATH + "plans/baseplan_car_only.xml.gz");
-		config.network().setInputFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
-		config.counts().setCountsFileName(BERLIN_PATH + "counts/iv_counts/vmz_di-do.xml");
 		config.controler().setOutputDirectory(outputDirectory);
 		config.counts().setOutputFormat("kml");
 		config.counts().setWriteCountsInterval(1);
