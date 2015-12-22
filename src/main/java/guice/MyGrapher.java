@@ -286,6 +286,8 @@ public class MyGrapher extends AbstractInjectorGrapher {
 
 	@Override
 	protected void newInterfaceNode(InterfaceNode node) {
+		System.out.println(node.getSource());
+
 		// TODO(phopkins): Show the Module on the graph, which comes from the
 		// class name when source is a StackTraceElement.
 
@@ -300,6 +302,8 @@ public class MyGrapher extends AbstractInjectorGrapher {
 
 	@Override
 	protected void newImplementationNode(ImplementationNode node) {
+		System.out.println(node.getSource());
+
 		NodeId nodeId = node.getId();
 		GraphvizNode gnode = new GraphvizNode(nodeId);
 		gnode.setStyle(NodeStyle.SOLID);
@@ -317,6 +321,7 @@ public class MyGrapher extends AbstractInjectorGrapher {
 
 	@Override
 	protected void newInstanceNode(InstanceNode node) {
+		System.out.println(node.getSource());
 		NodeId nodeId = node.getId();
 		GraphvizNode gnode = new GraphvizNode(nodeId);
 		gnode.setStyle(NodeStyle.SOLID);

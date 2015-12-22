@@ -1,29 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v1.dtd"
-  [
-   <!ENTITY NETWORK        "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/network.xml.gz">
-   <!ENTITY PLANS          "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/plans/baseplan_car_only.xml.gz">
-   <!ENTITY COUNTS         "/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/vmz_di-do.xml">
-   <!ENTITY WRITEINTERVAL  "20">
-   <!ENTITY LASTITER  "100">
-
-   <!ENTITY OUTBASE "../output/2kW/">
-   <!ENTITY NAME "2kW.15">
-  ]
->
+<!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v1.dtd">
 <config>
 
 <!-- ====================================================================== -->
 
 	<module name="network" >
-		<param name="inputNetworkFile" value="&NETWORK;" />
+		<param name="inputNetworkFile" value="/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/network.xml.gz" />
 	</module>
 
 	<module name="counts">
-		<param name="inputCountsFile" value="&COUNTS;" />
+		<param name="inputCountsFile" value="/Users/michaelzilske/shared-svn/studies/countries/de/berlin/counts/iv_counts/vmz_di-do.xml" />
 		<param name="outputformat" value="kml,html" />
 		<param name="countsScaleFactor" value="50.0" />
-		<param name="writeCountsInterval" value="&WRITEINTERVAL;" />
+		<param name="writeCountsInterval" value="20" />
 	</module>
 
 <!-- ====================================================================== -->
@@ -37,7 +26,7 @@
 <!-- ====================================================================== -->
 
 	<module name="plans" >
-		<param name="inputPlansFile" value="&PLANS;" />
+		<param name="inputPlansFile" value="/Users/michaelzilske/shared-svn/studies/countries/de/berlin/plans/baseplan_car_only.xml.gz" />
 	</module>
 
 <!-- ====================================================================== -->
@@ -46,20 +35,16 @@
 
 		<param name="eventsFileFormat" value="xml" />
 		<param name="firstIteration" value="0" />
-		<param name="lastIteration" value="&LASTITER;" />
-		<param name="outputDirectory" value="&OUTBASE;&NAME;" />
-
-		<!-- The type of routing (least cost path) algorithm used, may have the values: Dijkstra or AStarLandmarks -->
-		<param name="routingAlgorithmType" value="AStarLandmarks" />
+		<param name="lastIteration" value="100" />
 
 		<!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
-		<param name="runId" value="&NAME;" />
+		<param name="runId" value="2kW.15" />
 
 		<!-- Defines which mobility simulation will be used. Currently supported: queueSimulation, qsim, jdeqsim, multimodalQSim -->
 		<param name="mobsim" value="qsim" />
 
-		<param name="writeEventsInterval" value="&WRITEINTERVAL;" />
-		<param name="writePlansInterval" value="&WRITEINTERVAL;" />
+		<param name="writeEventsInterval" value="20" />
+		<param name="writePlansInterval" value="20" />
 	</module>
 
 <!-- ====================================================================== -->
@@ -69,12 +54,6 @@
 		<param name="numberOfThreads" value="4" />
 		<param name="randomSeed" value="4711" />
 	</module>
-
-<!-- ====================================================================== -->
-
-        <module name="parallelEventHandling">
-                <param name="numberOfThreads" value="1" />
-        </module>
 
 <!-- ====================================================================== -->
 
@@ -215,13 +194,5 @@
 		<param name="maxAgentPlanMemorySize" value="5" />
 		<param name="fractionOfIterationsToDisableInnovation" value="0.8" />
 	</module>
-
-<!-- ====================================================================== -->
-<!-- 
-	<module name="vspExperimental" >
-		<param name="vspDefaultsCheckingLevel" value="warn" />
-	</module>
- -->
-<!-- ====================================================================== -->
 
 </config>
