@@ -22,11 +22,7 @@
 
 package populationsize;
 
-import cadyts.CadytsModule;
 import cdr.*;
-import clones.ClonesConfigGroup;
-import clones.ClonesModule;
-import enrichtraces.TrajectoryReEnricherModule;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Id;
@@ -42,23 +38,15 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.config.groups.PlanCalcScoreConfigGroup.ActivityParams;
 import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
-import org.matsim.core.controler.AbstractModule;
-import org.matsim.core.controler.Controler;
-import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.ReplayEvents;
-import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
-import org.matsim.core.replanning.PlanStrategy;
-import org.matsim.core.replanning.ReplanningContext;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsReaderMatsimV1;
 import org.matsim.counts.CountsWriter;
-import segmenttraces.TrajectoryReEnricherAndSegmenterModule;
 import util.FileIO;
 import util.StreamingOutput;
 
@@ -302,55 +290,6 @@ public class MultiRateRunResource {
             }
         }
         pw.printf("%s\t%d\t%d\n", rate, (int) (kmSum / 1000.0), nPeople);
-    }
-
-    public void persodisthisto() {
-        final String filename = WD + "/perso-dist-histo.txt";
-        final Scenario baseScenario = getBaseRun().getLastIteration().getExperiencedPlansAndNetwork();
-        FileIO.writeToFile(filename, new StreamingOutput() {
-            @Override
-            public void write(PrintWriter pw) throws IOException {
-                pw.printf("person\trate\tCase\tstatus\tkilometers\n");
-                for (String rate : getRates()) {
-                    final Map<Id, Double> baseKm = PowerPlans.travelledDistancePerPerson(baseScenario.getPopulation(), baseScenario.getNetwork());
-                    dumpnonzero(pw, rate, "truth", baseKm, baseScenario);
-                    {
-                        Scenario scenario = getRateRun(rate, "1").getOutputScenario();
-                        Map<Id, Double> km = PowerPlans.travelledDistancePerPerson(scenario.getPopulation(), baseScenario.getNetwork());
-                        dumpnonzero(pw, rate, "calibrated", km, baseScenario);
-                    }
-                    {
-                        ArrayList<Person> it0 = new ArrayList<>(getRateRun(rate, "1").getIteration(0).getPlans().getPersons().values());
-                        for (Iterator<Person> i = it0.iterator(); i.hasNext(); ) {
-                            Person person = i.next();
-                            if (person.getId().toString().startsWith("I")) {
-                                i.remove();
-                            } else {
-                                person.setSelectedPlan(person.getPlans().get(0));
-                            }
-                        }
-                        Map<Id, Double> km = PowerPlans.travelledDistancePerPerson(baseScenario.getNetwork(), it0);
-                        dumpnonzero(pw, rate, "initial", km, baseScenario);
-                    }
-                }
-            }
-        });
-    }
-
-    private void dumpnonzero(PrintWriter pw, String rate, String ccase, Map<Id, Double> baseKm, Scenario baseScenario) {
-        for (Map.Entry<Id, Double> entry : baseKm.entrySet()) {
-            Double km = entry.getValue();
-//            if (km != 0.0) {
-                String id = entry.getKey().toString();
-                String originalId;
-                if (id.startsWith("I"))
-                    originalId = id.substring(id.indexOf("_") + 1);
-                else
-                    originalId = id;
-                pw.printf("%s\t%s\t%s\t%s\t%f\n", entry.getKey().toString(), rate, ccase, CountWorkers.isWorker(baseScenario.getPopulation().getPersons().get(Id.create(originalId, Person.class))) ? "workers" : "non-workers", km);
-                pw.printf("%s\t%s\t%s\t%s\t%f\n", entry.getKey().toString(), rate, ccase, "all", km);
-//            }
-        }
     }
 
     public RunResource getRateRun(String rate, String variant) {
