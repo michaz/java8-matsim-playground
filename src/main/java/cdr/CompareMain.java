@@ -1,5 +1,6 @@
 package cdr;
 
+import cadyts.CadytsModule;
 import jfastemd.Feature;
 import jfastemd.JFastEMD;
 import jfastemd.Signature;
@@ -21,11 +22,13 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.PlanStrategyImpl;
+import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordUtils;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
+import populationsize.CadytsAndCloneScoringFunctionFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -186,6 +189,7 @@ public class CompareMain {
 
 	public static VolumesAnalyzer runWithTwoPlansAndCadyts(String outputDirectory, Network network, final ZoneTracker.LinkToZoneResolver linkToZoneResolver, Sightings allSightings, Counts counts) {
 		Config config = ConfigUtils.createConfig();
+		final double cadytsWeight = 100.0;
 		ActivityParams sightingParam = new ActivityParams("sighting");
 		// sighting.setOpeningTime(0.0);
 		// sighting.setClosingTime(0.0);
@@ -204,7 +208,7 @@ public class CompareMain {
 		tmp.setRemoveStuckVehicles(false);
 
 		StrategySettings stratSets = new StrategySettings(Id.create(1, StrategySettings.class));
-		stratSets.setStrategyName("ccc") ;
+		stratSets.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.ChangeExpBeta.toString());
 		stratSets.setWeight(1.) ;
 		config.strategy().addStrategySettings(stratSets) ;
 
@@ -215,30 +219,19 @@ public class CompareMain {
 		PopulationFromSightings.createPopulationWithTwoPlansEach(scenario2, linkToZoneResolver, allSightings);
 //		PopulationFromSightings.preparePopulation(scenario2, linkToZoneResolver, allSightings);
 
-		final CadytsContext context = new CadytsContext(config, counts) ;
 		Controler controler = new Controler(scenario2);
-		controler.addControlerListener(context);
-		controler.addOverridingModule(new AbstractModule() {
-			@Override
-			public void install() {
-				addPlanStrategyBinding("ccc").toProvider(new javax.inject.Provider<PlanStrategy>() {
-					@Override
-					public PlanStrategy get() {
-						final CadytsPlanChanger planSelector = new CadytsPlanChanger(scenario2, context);
-						planSelector.setCadytsWeight(10000000);
-						return new PlanStrategyImpl(planSelector);
-					}
-				});
-			}
-		});
+		controler.addOverridingModule(new CadytsModule());
 		controler.getConfig().controler().setCreateGraphs(false);
-        controler.run();
+		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
+		factory.setCadytsweight(cadytsWeight);
+		controler.setScoringFunctionFactory(factory);
+		controler.run();
 		double sum=0.0;
-		for (Person person : scenario2.getPopulation().getPersons().values()) {
-			Plan plan = person.getSelectedPlan();
-			double currentPlanCadytsCorrection = calcCadytsScore(context, plan);
-			sum += Math.abs(currentPlanCadytsCorrection);
-		}
+//		for (Person person : scenario2.getPopulation().getPersons().values()) {
+//			Plan plan = person.getSelectedPlan();
+//			double currentPlanCadytsCorrection = calcCadytsScore(context, plan);
+//			sum += Math.abs(currentPlanCadytsCorrection);
+//		}
 		System.out.println(sum);
 		return controler.getVolumes();
 	}

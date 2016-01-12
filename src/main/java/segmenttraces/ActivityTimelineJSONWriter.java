@@ -11,10 +11,9 @@ import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
-import org.matsim.core.scoring.EventsToScore;
-import org.matsim.core.scoring.ScoringFunction;
-import org.matsim.core.scoring.ScoringFunctionFactory;
+import org.matsim.core.scoring.*;
 import org.matsim.core.utils.misc.Time;
 import populationsize.ExperimentResource;
 import populationsize.IterationResource;
@@ -153,55 +152,14 @@ public class ActivityTimelineJSONWriter {
 		scenarioBuilder.setNetwork(network);
 		scenarioBuilder.setPopulation(iteration.getPlans());
 		Scenario scenario = scenarioBuilder.build();
-		EventsToScore eventsToScore = new EventsToScore(scenario, new ScoringFunctionFactory() {
-			@Override
-			public ScoringFunction createNewScoringFunction(Person person) {
-				return new ScoringFunction() {
-					@Override
-					public void handleActivity(Activity activity) {
-
-					}
-
-					@Override
-					public void handleLeg(Leg leg) {
-
-					}
-
-					@Override
-					public void agentStuck(double time) {
-
-					}
-
-					@Override
-					public void addMoney(double amount) {
-
-					}
-
-					@Override
-					public void finish() {
-
-					}
-
-					@Override
-					public double getScore() {
-						return 0;
-					}
-
-					@Override
-					public void handleEvent(Event event) {
-
-					}
-				};
-			}
-		});
-		ReplayEvents.run(scenario, iteration.getEventsFileName(), new AbstractModule() {
+		ReplayEvents.Results run = ReplayEvents.run(scenario.getConfig(), iteration.getEventsFileName(), new AbstractModule() {
 			@Override
 			public void install() {
-				addEventHandlerBinding().toInstance(eventsToScore);
+				install(new ExperiencedPlanElementsModule());
+				install(new ScenarioByInstanceModule(scenario));
 			}
 		});
-		eventsToScore.finish();
-		return eventsToScore.getAgentRecords();
+		return run.get(ExperiencedPlansService.class).getAgentRecords();
 	}
 
 }

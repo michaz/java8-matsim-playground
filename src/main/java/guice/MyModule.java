@@ -13,13 +13,11 @@ import org.matsim.counts.Counts;
 class MyModule extends AbstractModule {
 	@Override
     public void install() {
+        install(new NewControlerModule());
         install(new ControlerDefaultsModule());
         install(new ControlerDefaultCoreListenersModule());
         Scenario scenario = ScenarioUtils.createScenario(getConfig());
         scenario.addScenarioElement(Counts.ELEMENT_NAME, new Counts<Link>());
         install(new ExplodedScenarioModule(scenario));
-        bind(OutputDirectoryHierarchy.class).asEagerSingleton();
-        bind(IterationStopWatch.class).asEagerSingleton();
-        bind(ControlerI.class).to(Controler.class).asEagerSingleton();
     }
 }

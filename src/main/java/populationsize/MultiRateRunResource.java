@@ -51,6 +51,7 @@ import org.matsim.core.events.EventsUtils;
 import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.ReplanningContext;
+import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.counts.Count;
@@ -111,8 +112,9 @@ public class MultiRateRunResource {
         ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
         CallBehavior callBehavior = new PhoneRateAttributeCallBehavior(baseScenario);
         ReplayEvents.Results results = ReplayEvents.run(
-                baseScenario,
+                baseScenario.getConfig(),
                 getBaseRun().getLastIteration().getEventsFileName(),
+                new ScenarioByInstanceModule(baseScenario),
                 new VolumesAnalyzerModule(),
                 new CollectSightingsModule(),
                 new CallBehaviorModule(callBehavior, linkToZoneResolver));
@@ -374,8 +376,9 @@ public class MultiRateRunResource {
         ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
         CallBehavior phonerate = new PhoneRateAttributeCallBehavior(baseScenario);
         ReplayEvents.Results results = ReplayEvents.run(
-                baseScenario,
+                baseScenario.getConfig(),
                 getBaseRun().getLastIteration().getEventsFileName(),
+                new ScenarioByInstanceModule(baseScenario),
                 new VolumesAnalyzerModule(),
                 new CollectSightingsModule(),
                 new CallBehaviorModule(phonerate, linkToZoneResolver));
@@ -425,8 +428,9 @@ public class MultiRateRunResource {
         };
         ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
         ReplayEvents.Results results = ReplayEvents.run(
-                baseScenario,
+                baseScenario.getConfig(),
                 getBaseRun().getLastIteration().getEventsFileName(),
+                new ScenarioByInstanceModule(baseScenario),
                 new VolumesAnalyzerModule(),
                 new CollectSightingsModule(),
                 new CallBehaviorModule(callBehavior, linkToZoneResolver));

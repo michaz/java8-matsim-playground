@@ -37,7 +37,7 @@ public class SegmentedUnsegmentedTagesgang extends Application {
 
 	private LegHistogram getLegHistogram(IterationResource iteration) {
 		LegHistogram legHistogram = new LegHistogram(300);
-		ReplayEvents.run(ScenarioUtils.createScenario(ConfigUtils.createConfig()), iteration.getEventsFileName(), new AbstractModule() {
+		ReplayEvents.run(ConfigUtils.createConfig(), iteration.getEventsFileName(), new AbstractModule() {
 			@Override
 			public void install() {
 				addEventHandlerBinding().toInstance(legHistogram);

@@ -3,6 +3,8 @@ package segmenttraces;
 import cdr.*;
 import clones.ClonesConfigGroup;
 import clones.ClonesModule;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -60,7 +62,7 @@ public class RunTrajectorySegmentationOnly {
 				});
 				addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
 					if (startupEvent.getIteration() == 0) {
-						PlanStrategy reEnrich = controler.getInjector().getPlanStrategies().get("ReRealize");
+						PlanStrategy reEnrich = controler.getInjector().getInstance(Key.get(PlanStrategy.class, Names.named("ReRealize")));
 						reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
 						scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
 						reEnrich.finish();

@@ -22,6 +22,7 @@
 
 package berlin;
 
+import cdr.PersoDistHistoModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -45,6 +46,7 @@ public class BerlinRunUncongested3 {
 		config.counts().setWriteCountsInterval(1);
 		config.counts().setAverageCountsOverIterations(1);
 		config.controler().setLastIteration(0);
+		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		config.qsim().setFlowCapFactor(100);
 		config.qsim().setStorageCapFactor(100);
 		config.qsim().setRemoveStuckVehicles(false);
@@ -52,7 +54,7 @@ public class BerlinRunUncongested3 {
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
 		final Controler controller = new Controler(scenario);
-		controller.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
+		controller.addOverridingModule(new PersoDistHistoModule());
 		controller.addControlerListener(new ShutdownListener() {
 			@Override
 			public void notifyShutdown(ShutdownEvent shutdownEvent) {

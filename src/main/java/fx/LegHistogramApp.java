@@ -21,13 +21,7 @@ package fx;/*
  */
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Slider;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.matsim.analysis.LegHistogram;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -43,7 +37,7 @@ public class LegHistogramApp extends Application {
     @Override
     public void start(Stage stage) {
         List<LegHistogram> legHistograms = new ArrayList<>();
-        for (int iter : Arrays.asList(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)) {
+        for (int iter : Arrays.asList(0 /*, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100*/)) {
             LegHistogram legHistogram = readLegHistogram(iter);
             legHistograms.add(legHistogram);
 
@@ -65,7 +59,7 @@ public class LegHistogramApp extends Application {
         EventsManager eventsManager = EventsUtils.createEventsManager();
         LegHistogram legHistogram = new LegHistogram(300);
         eventsManager.addHandler(legHistogram);
-        new MatsimEventsReader(eventsManager).readFile("/Users/michaelzilske/IDEAcheckout/playgrounds/mzilske/test/output/playground/mzilske/cdr/CDREquilTest/testOneWorkplaceAnytimeWithReplanning/output2/ITERS/it." + iter + "/" + iter + ".events.xml.gz");
+        new MatsimEventsReader(eventsManager).readFile(getParameters().getNamed().get("runDir")+"/ITERS/it." + iter + "/" + iter + ".events.xml.gz");
         return legHistogram;
     }
 

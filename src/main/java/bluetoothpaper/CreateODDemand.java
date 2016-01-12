@@ -175,7 +175,7 @@ public class CreateODDemand extends Application {
 
     private Scenario createScenario(Config config) {
         final Scenario scenario = ScenarioUtils.createScenario(config);
-        new MatsimNetworkReader(scenario).parse(CreateODDemand.class.getResourceAsStream("network.xml"));
+        new MatsimNetworkReader(scenario.getNetwork()).parse(CreateODDemand.class.getResourceAsStream("network.xml"));
 
         final Counts counts = new Counts();
         scenario.addScenarioElement(Counts.ELEMENT_NAME, counts);

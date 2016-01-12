@@ -22,9 +22,12 @@
 
 package guice;
 
+import com.google.inject.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.*;
+import org.matsim.core.controler.AbstractModule;
+import org.matsim.core.controler.Injector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -47,7 +50,7 @@ public class Graph {
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final PrintWriter out = new PrintWriter(baos);
-        Injector matsimInjector = Injector.createInjector(configToGraph, (AbstractModule) module);
+        com.google.inject.Injector matsimInjector = Injector.createInjector(configToGraph, (AbstractModule) module);
         matsimInjector.getInstance(ControlerI.class);
         try {
             MyGrapher renderer = new MyGrapher();

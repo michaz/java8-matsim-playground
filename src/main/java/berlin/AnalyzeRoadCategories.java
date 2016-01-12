@@ -23,7 +23,7 @@ public class AnalyzeRoadCategories {
     public static void main(String[] args) {
         Scenario scenario = ScenarioUtils.createScenario(ConfigUtils.createConfig());
         ObjectAttributes linkAttributes = new ObjectAttributes();
-        new MatsimNetworkReader(scenario).readFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
+        new MatsimNetworkReader(scenario.getNetwork()).readFile(BERLIN_PATH + "counts/iv_counts/network.xml.gz");
         Set<RoadCategoryClusterableLink> rcs = new HashSet<>();
         for (Link link : scenario.getNetwork().getLinks().values()) {
             RoadCategoryClusterableLink rc = new RoadCategoryClusterableLink(link);

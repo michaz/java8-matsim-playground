@@ -6,6 +6,7 @@ import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
 
@@ -34,8 +35,9 @@ public class RunWorkerNonWorker {
 		}
 		ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
 		ReplayEvents.Results results = ReplayEvents.run(
-				baseScenario,
+				baseScenario.getConfig(),
 				baseRun.getLastIteration().getEventsFileName(),
+				new ScenarioByInstanceModule(baseScenario),
 				new VolumesAnalyzerModule(),
 				new CollectSightingsModule(),
 				new CallBehaviorModule(new OnlyBasedOnPhonerateAttribute(), linkToZoneResolver));
