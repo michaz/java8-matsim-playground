@@ -63,10 +63,13 @@ berlin/congested3/alternatives/only-heavy-users/sightings <- berlin/congested3/o
 %legHistogramApp <- berlin/uncongested3/output-berlin
 	mvn exec:java -Dexec.mainClass="fx.LegHistogramApp" -Dexec.args="--runDir=$INPUT"
 
-guice <- !input/berlin/2kW.15.xml
-	mvn exec:java -Dexec.mainClass="guice.Graph" -Dexec.args="$INPUT guice.MyModule $OUTPUT"
+guice <- !input/graphconfig.xml
+	mvn exec:java -Dexec.mainClass="guice.Graph2" -Dexec.args="$INPUT guice.MyModule $OUTPUT"
 guice.svg <- guice
 	dot -Tsvg -o$OUTPUT $INPUT/guice.dot
+guice.pdf <- guice
+	dot -Tpdf -o$OUTPUT $INPUT/guice.dot
+
 
 %temp <- berlin/uncongested3/alternatives/worker-heavy-users/alternatives/full-procedure/run
 	mvn exec:java -Dexec.mainClass="cdr.PersoDistHistoModule" -Dexec.args="$INPUT 100"
