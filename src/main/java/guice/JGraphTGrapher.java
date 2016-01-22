@@ -4,9 +4,9 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.grapher.*;
-import com.google.inject.grapher.graphviz.ArrowType;
+import org.jgrapht.DirectedGraph;
+import org.jgrapht.Graphs;
 import org.jgrapht.alg.ConnectivityInspector;
-import org.jgrapht.ext.*;
 import org.jgrapht.graph.DirectedMaskSubgraph;
 import org.jgrapht.graph.ListenableDirectedGraph;
 import org.jgrapht.graph.MaskFunctor;
@@ -25,14 +25,18 @@ import org.matsim.core.controler.corelisteners.DumpDataAtEnd;
 import org.matsim.core.controler.corelisteners.EventsHandling;
 import org.matsim.core.controler.corelisteners.PlansDumping;
 import org.matsim.core.mobsim.framework.listeners.MobsimListener;
+import org.matsim.core.mobsim.qsim.AbstractQSimPlugin;
 import org.matsim.core.replanning.ReplanningContext;
+import org.matsim.core.router.SingleModeNetworksCache;
+import org.matsim.core.scoring.ExperiencedPlansService;
+import org.matsim.core.scoring.functions.CharyparNagelScoringParametersForPerson;
+import org.matsim.core.trafficmonitoring.TravelTimeCalculator;
 import org.matsim.facilities.ActivityFacilities;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JGraphTGrapher extends AbstractInjectorGrapher {
 
@@ -83,7 +87,13 @@ public class JGraphTGrapher extends AbstractInjectorGrapher {
 
 	@Override
 	protected void postProcess() throws IOException {
-		DirectedMaskSubgraph<Node, Edge> filtered = new DirectedMaskSubgraph<>(g, new MaskFunctor<Node, Edge>() {
+		for (Node node : new HashSet<>(g.vertexSet())) {
+			if ((node instanceof InterfaceNode) && node.getId().getKey().getTypeLiteral().getRawType().isAssignableFrom(Map.class)) {
+				removeIntermediate(node, this.g);
+			}
+			System.out.println(node.getId().getKey().toString());
+		}
+		DirectedGraph<Node, Edge> filtered = new DirectedMaskSubgraph<>(g, new MaskFunctor<Node, Edge>() {
 			@Override
 			public boolean isEdgeMasked(Edge edge) {
 				return false;
@@ -138,61 +148,71 @@ public class JGraphTGrapher extends AbstractInjectorGrapher {
 				if (EventsHandling.class.isAssignableFrom(node.getId().getKey().getTypeLiteral().getRawType())) {
 					return true;
 				}
+				if (TravelTimeCalculator.class.isAssignableFrom(node.getId().getKey().getTypeLiteral().getRawType())) {
+					return true;
+				}
+				if (CharyparNagelScoringParametersForPerson.class.isAssignableFrom(node.getId().getKey().getTypeLiteral().getRawType())) {
+					return true;
+				}
+				if (SingleModeNetworksCache.class.isAssignableFrom(node.getId().getKey().getTypeLiteral().getRawType())) {
+					return true;
+				}
+				if (ExperiencedPlansService.class.equals(node.getId().getKey().getTypeLiteral().getRawType())) {
+					return true;
+				}
 				if (node.getId().getKey().getTypeLiteral().equals(new TypeLiteral<Set<MobsimListener>>(){})) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().equals(new TypeLiteral<Collection<AbstractQSimPlugin>>(){})) {
 					return true;
 				}
 				return false;
 			}
 		});
 		ConnectivityInspector<Node, Edge> ci = new ConnectivityInspector<>(filtered);
-		filtered = new DirectedMaskSubgraph<>(g, new MaskFunctor<Node, Edge>() {
+		filtered = new ListenableDirectedGraph<>(Edge.class);
+		Graphs.addGraph(filtered, new DirectedMaskSubgraph<>(g, new MaskFunctor<Node, Edge>() {
 			@Override
 			public boolean isEdgeMasked(Edge edge) {
 				return false;
 			}
 			@Override
 			public boolean isVertexMasked(Node node) {
-				Node vertex = nodes.get(NodeId.newTypeId(Key.get(ControlerI.class)));
+				Node vertex = JGraphTGrapher.this.nodes.get(NodeId.newTypeId(Key.get(ControlerI.class)));
 				return !ci.connectedSetOf(vertex).contains(node);
 			}
-		});
+		}));
 
-		VertexNameProvider<Node> vertexIDProvider = new IntegerNameProvider<>();
-		VertexNameProvider<Node> vertexLabelProvider = node -> {
-			if (node instanceof InstanceNode) {
-				return nameFactory.getInstanceName(((InstanceNode) node).getInstance());
-			} else {
-				return nameFactory.getClassName(node.getId().getKey());
+		for (Node node : new HashSet<>(filtered.vertexSet())) {
+			if (node.getId().getKey().toString().contains("PlansReplanningImpl") || node.getId().getKey().toString().contains("PlansScoringImpl")) {
+				removeIntermediate(node, filtered);
 			}
-		};
-		EdgeNameProvider<Edge> edgeLabelProvider = null;
-		ComponentAttributeProvider<Node> vertexAttributeProvider = node -> {
-			HashMap<String, String> atts = new HashMap<>();
-			atts.put("shape", "box");
-			if (node instanceof InterfaceNode) {
-				atts.put("style", "dashed");
-			}
-			return atts;
-		};
-		ComponentAttributeProvider<Edge> edgeAttributeProvider = edge -> {
-			HashMap<String, String> atts = new HashMap<>();
-			if (edge instanceof BindingEdge) {
-				atts.put("style", "dashed");
-				switch (((BindingEdge) edge).getType()) {
-					case NORMAL:
-						atts.put("arrowhead", ArrowType.NORMAL_OPEN.toString());
-						break;
-					case PROVIDER:
-						atts.put("arrowhead", ArrowType.NORMAL_OPEN.toString() + ArrowType.NORMAL_OPEN.toString());
-						break;
-					case CONVERTED_CONSTANT:
-						atts.put("arrowhead", ArrowType.NORMAL_OPEN.toString() + ArrowType.DOT_OPEN.toString());
-						break;
-				}
-			}
-			return atts;
-		};
-		DOTExporter<Node, Edge> dotExporter = new DOTExporter<>(vertexIDProvider, vertexLabelProvider, edgeLabelProvider, vertexAttributeProvider, edgeAttributeProvider);
-		dotExporter.export(writer, filtered);
+			System.out.println(node.getId().getKey().toString());
+		}
+
+		MyGrapher myGrapher = new MyGrapher();
+		myGrapher.setRankdir("LR");
+		myGrapher.setOut((PrintWriter) writer);
+		myGrapher.graph(filtered);
 	}
+
+	private void removeIntermediate(Node node, DirectedGraph<Node, Edge> g) {
+		if (g.incomingEdgesOf(node).size() != 1) {
+			throw new RuntimeException();
+		}
+		Edge otherEdge = g.incomingEdgesOf(node).iterator().next();
+		for (Edge edge : new ArrayList<>(g.outgoingEdgesOf(node))) {
+			Node target = g.getEdgeTarget(edge);
+			Node source = g.getEdgeSource(otherEdge);
+			g.removeEdge(edge);
+			Edge newEdge = otherEdge.copy(source.getId(), target.getId());
+			g.addEdge(source, target, newEdge);
+		}
+		g.removeVertex(node);
+	}
+
+/**
+ * {rank=min; x5;}
+
+ */
 }

@@ -11,12 +11,19 @@ import com.google.inject.grapher.graphviz.*;
 import com.google.inject.spi.InjectionPoint;
 import com.google.inject.spi.ProviderBinding;
 import com.google.inject.util.Types;
+import org.jgrapht.DirectedGraph;
 import org.matsim.core.config.groups.StrategyConfigGroup;
+import org.matsim.core.controler.PrepareForSim;
+import org.matsim.core.controler.TerminationCriterion;
+import org.matsim.core.controler.corelisteners.PlansReplanning;
+import org.matsim.core.controler.corelisteners.PlansScoring;
 import org.matsim.core.controler.listener.ControlerListener;
 import org.matsim.core.events.handler.EventHandler;
+import org.matsim.core.mobsim.framework.Mobsim;
 import org.matsim.core.mobsim.framework.listeners.MobsimListener;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.router.RoutingModule;
+import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.vis.snapshotwriters.SnapshotWriter;
@@ -31,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 
 public class MyGrapher extends AbstractInjectorGrapher {
+
+	boolean fields = false;
 
 	MyGrapher() {
 		super(new GrapherParameters()
@@ -135,6 +144,18 @@ public class MyGrapher extends AbstractInjectorGrapher {
 			renderEdge(edge);
 		}
 
+		out.println("{");
+		out.println("rank=same;");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(Mobsim.class))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(TripRouter.class))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(PlansScoring.class))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(TerminationCriterion.class))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(PrepareForSim.class))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(PlansReplanning.class))).getIdentifier()+";");
+
+
+		out.println("}");
+
 		finish();
 
 		out.flush();
@@ -231,7 +252,11 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		attrs.put("arrowhead", getArrowString(edge.getArrowHead()));
 		attrs.put("arrowtail", getArrowString(edge.getArrowTail()));
 		attrs.put("style", edge.getStyle().toString());
-
+//		if (edge.getHeadNodeId().getKey().getAnnotation() instanceof com.google.inject.name.Named) {
+////			System.out.printf("%s --- %s\n", edge.getHeadNodeId().getKey().getAnnotation(), edge.getTailNodeId().getKey().getAnnotation());
+//			String value = ((com.google.inject.name.Named) edge.getHeadNodeId().getKey().getAnnotation()).value();
+//			attrs.put("label", value);
+//		}
 		return attrs;
 	}
 
@@ -312,8 +337,10 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		gnode.setHeaderTextColor("#ffffff");
 		gnode.setTitle(nameFactory.getClassName(nodeId.getKey()));
 
-		for (Member member : node.getMembers()) {
-			gnode.addField(portIdFactory.getPortId(member), nameFactory.getMemberName(member));
+		if (fields) {
+			for (Member member : node.getMembers()) {
+				gnode.addField(portIdFactory.getPortId(member), nameFactory.getMemberName(member));
+			}
 		}
 
 		addNode(gnode);
@@ -336,10 +363,11 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		gnode.setHeaderTextColor("#ffffff");
 		gnode.setTitle(nameFactory.getInstanceName(node.getInstance()));
 
-		for (Member member : node.getMembers()) {
-			gnode.addField(portIdFactory.getPortId(member), nameFactory.getMemberName(member));
+		if (fields) {
+			for (Member member : node.getMembers()) {
+				gnode.addField(portIdFactory.getPortId(member), nameFactory.getMemberName(member));
+			}
 		}
-
 		addNode(gnode);
 	}
 
@@ -375,12 +403,31 @@ public class MyGrapher extends AbstractInjectorGrapher {
 				gedge.setArrowHead(ImmutableList.of(ArrowType.NORMAL_OPEN, ArrowType.DOT_OPEN));
 				break;
 		}
-
 		edges.add(gedge);
 	}
 
 	private void addNode(GraphvizNode node) {
 		node.setIdentifier("x" + nodes.size());
 		nodes.put(node.getNodeId(), node);
+	}
+
+	public void graph(DirectedGraph<Node, Edge> graph) {
+		for (Node node : graph.vertexSet()) {
+			if (node instanceof InstanceNode) {
+				newInstanceNode(((InstanceNode) node));
+			} else if (node instanceof ImplementationNode) {
+				newImplementationNode(((ImplementationNode) node));
+			} else if (node instanceof InterfaceNode) {
+				newInterfaceNode(((InterfaceNode) node));
+			}
+		}
+		for (Edge edge : graph.edgeSet()) {
+			if (edge instanceof BindingEdge) {
+				newBindingEdge(((BindingEdge) edge));
+			} else if (edge instanceof DependencyEdge) {
+				newDependencyEdge(((DependencyEdge) edge));
+			}
+		}
+		postProcess();
 	}
 }

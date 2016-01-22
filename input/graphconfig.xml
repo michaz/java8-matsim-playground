@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE config SYSTEM "http://www.matsim.org/files/dtd/config_v1.dtd">
 <config>
+    <module name="strategy" >
+        <param name="Module_1" value="ChangeExpBeta" />
+        <param name="ModuleProbability_1" value="0.7" />
+
+        <param name="Module_2" value="ReRoute" />
+        <param name="ModuleProbability_2" value="0.2" />
+    </module>
 </config>
