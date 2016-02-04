@@ -31,6 +31,9 @@ import rx.schedulers.Schedulers;
 public class Demo {
 
     public static void main(String[] args) throws InterruptedException {
+
+        Observable.just(1, 2, 3).forEach(next ->{ throw new RuntimeException("Bang!");});
+
         ConnectableObservable<PersonDepartureEvent> events = Observable.<PersonDepartureEvent>create(subscriber -> {
             for(int i=0;i<100;i++) {
                 subscriber.onNext(new PersonDepartureEvent(i, Id.createPersonId("1"), Id.createLinkId("5"), "car"));

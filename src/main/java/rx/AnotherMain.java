@@ -32,13 +32,13 @@ public class AnotherMain {
 			}
 		});
 		MatsimRx matsimRx = injector.getInstance(MatsimRx.class);
-		matsimRx.iterations().flatMap(iteration -> iteration.events().count()).forEach(System.out::println);
+		matsimRx.iterations().flatMap(iteration -> iteration.events().count()).forEach(i -> {throw new RuntimeException();});
 		matsimRx.iterations().forEach(iteration -> {
 			iteration.events()
 					.filter(e -> e instanceof HasPersonId)
 					.groupBy(e -> ((HasPersonId) e).getPersonId())
 					.flatMap(g -> g.count())
-					.forEach(System.out::println);
+					.forEach(i -> {throw new RuntimeException();});
 		});
 		matsimRx.run();
 	}

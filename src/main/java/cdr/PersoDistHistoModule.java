@@ -1,7 +1,6 @@
 package cdr;
 
 
-import com.google.common.eventbus.Subscribe;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -23,10 +22,9 @@ import org.matsim.core.network.MatsimNetworkReader;
 import org.matsim.core.population.MatsimPopulationReader;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.scoring.EventsToLegs;
 import org.matsim.core.scoring.ExperiencedPlanElementsModule;
-import org.matsim.core.scoring.ExperiencedPlanElementsService;
 import org.matsim.core.scoring.PersonExperiencedLeg;
-import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionModule;
 import util.FileIO;
 
 import javax.inject.Inject;
@@ -65,17 +63,17 @@ public class PersoDistHistoModule extends AbstractModule {
 		addControlerListenerBinding().to(PersoDistHistoControlerListener.class).asEagerSingleton();
 	}
 
-	private static class PersoDistHistoControlerListener implements StartupListener, IterationStartsListener, IterationEndsListener {
+	private static class PersoDistHistoControlerListener implements EventsToLegs.LegHandler, StartupListener, IterationStartsListener, IterationEndsListener {
 
 		@Inject Population population;
-		@Inject ExperiencedPlanElementsService experiencedPlanElementsService;
+		@Inject EventsToLegs experiencedPlanElementsService;
 		@Inject OutputDirectoryHierarchy controlerIO;
 
 		private HashMap<Id<Person>, Double> distances;
 
 		@Override
 		public void notifyStartup(StartupEvent startupEvent) {
-			experiencedPlanElementsService.register(this);
+			experiencedPlanElementsService.addLegHandler(this);
 		}
 
 		@Override
@@ -86,8 +84,8 @@ public class PersoDistHistoModule extends AbstractModule {
 			}
 		}
 
-		@Subscribe
-		public void addLeg(PersonExperiencedLeg leg) {
+		@Override
+		public void handleLeg(PersonExperiencedLeg leg) {
 			distances.put(leg.getAgentId(), distances.get(leg.getAgentId()) + leg.getLeg().getRoute().getDistance());
 		}
 

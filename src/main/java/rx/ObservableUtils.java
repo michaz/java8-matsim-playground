@@ -25,6 +25,7 @@ package rx;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.events.handler.BasicEventHandler;
+import rx.observers.SafeSubscriber;
 
 public class ObservableUtils {
 
@@ -44,7 +45,7 @@ public class ObservableUtils {
                             eventsManager.removeHandler(this);
                             return;
                         }
-                        subscriber.onNext(event);
+                        new SafeSubscriber<>(subscriber).onNext(event);
                     }
 
                     @Override
