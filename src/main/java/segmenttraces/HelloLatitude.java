@@ -78,7 +78,7 @@ public class HelloLatitude {
 			for (int j=i+1; j< significantActivities.size(); ++j) {
 				Segment v1 = significantActivities.get(i);
 				Segment v2 = significantActivities.get(j);
-				Graphs.addEdge(g, v1, v2, CoordUtils.calcDistance(centroid(v1.locations), centroid(v2.locations)));
+				Graphs.addEdge(g, v1, v2, CoordUtils.calcEuclideanDistance(centroid(v1.locations), centroid(v2.locations)));
 			}
 		}
 		KruskalMinimumSpanningTree<Segment, DefaultWeightedEdge> mst = new KruskalMinimumSpanningTree<>(g);
@@ -150,7 +150,7 @@ public class HelloLatitude {
 	}
 
 	boolean liesCompletelyIn(Sighting location, Sighting locationInSegment) {
-		if (CoordUtils.calcDistance(getCoord(location), getCoord(locationInSegment)) < (locationInSegment.getAccuracy() - location.getAccuracy())) {
+		if (CoordUtils.calcEuclideanDistance(getCoord(location), getCoord(locationInSegment)) < (locationInSegment.getAccuracy() - location.getAccuracy())) {
 			return true;
 		} else {
 			return false;
@@ -159,7 +159,7 @@ public class HelloLatitude {
 
 	boolean clusterCriterion(List<Sighting> segment, Sighting location) {
 		if (segment.isEmpty()) return true;
-		return CoordUtils.calcDistance(getCoord(segment.get(0)), getCoord(location)) - segment.get(0).getAccuracy() - location.getAccuracy() <= 70.0;
+		return CoordUtils.calcEuclideanDistance(getCoord(segment.get(0)), getCoord(location)) - segment.get(0).getAccuracy() - location.getAccuracy() <= 70.0;
 	}
 
 	private static void sortLocations(List<Sighting> locations) {
@@ -210,7 +210,7 @@ public class HelloLatitude {
 		for (Segment segment : planElement) {
 			Coord sis = centroid(segment.locations);
 			if (prev != null) {
-				result += CoordUtils.calcDistance(prev, sis);
+				result += CoordUtils.calcEuclideanDistance(prev, sis);
 			}
 			prev = sis;
 		}

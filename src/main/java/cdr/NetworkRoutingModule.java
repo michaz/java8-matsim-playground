@@ -23,7 +23,7 @@ public class NetworkRoutingModule implements RoutingModule {
 
 	public NetworkRoutingModule(PopulationFactory pf, Network network, TravelTime ttc) {
 		super();
-		networkLegRouter = DefaultRoutingModules.createNetworkRouter("unknown", pf, network, new Dijkstra(network, new OnlyTimeDependentTravelDisutility(ttc), ttc));
+		networkLegRouter = DefaultRoutingModules.createPureNetworkRouter("unknown", pf, network, new Dijkstra(network, new OnlyTimeDependentTravelDisutility(ttc), ttc));
 	}
 
 	@Override

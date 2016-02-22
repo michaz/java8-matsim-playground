@@ -56,7 +56,7 @@ public class DistanceCalculator {
     }
 
     public double distance(Sighting a, Sighting b) {
-        return CoordUtils.calcDistance(
+        return CoordUtils.calcEuclideanDistance(
                 getCoord(a),
                 getCoord(b));
     }
