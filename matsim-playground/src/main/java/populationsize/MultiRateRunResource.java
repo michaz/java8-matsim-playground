@@ -84,7 +84,7 @@ public class MultiRateRunResource {
     }
 
     public RunResource getBaseRun() {
-        return new RegimeResource(WD + "/../..", regime).getBaseRun();
+        return new RegimeResource(WD + "/src", regime).getBaseRun();
     }
 
     public void twoRates(String string) {
