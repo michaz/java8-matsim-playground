@@ -88,7 +88,7 @@ public class JGraphTGrapher extends AbstractInjectorGrapher {
 	@Override
 	protected void postProcess() throws IOException {
 		for (Node node : new HashSet<>(g.vertexSet())) {
-			if ((node instanceof InterfaceNode) && node.getId().getKey().getTypeLiteral().getRawType().isAssignableFrom(Map.class)) {
+			if ((node instanceof InterfaceNode) && node.getId().getKey().getTypeLiteral().getRawType().isAssignableFrom(Map.class) && !node.getId().getKey().toString().contains("AttributeConverter") /* regular MapBinder, not my construct */) {
 				removeIntermediate(node, this.g);
 			}
 			System.out.println(node.getId().getKey().toString());
@@ -198,7 +198,7 @@ public class JGraphTGrapher extends AbstractInjectorGrapher {
 
 	private void removeIntermediate(Node node, DirectedGraph<Node, Edge> g) {
 		if (g.incomingEdgesOf(node).size() != 1) {
-			throw new RuntimeException();
+			throw new RuntimeException(node.toString());
 		}
 		Edge otherEdge = g.incomingEdgesOf(node).iterator().next();
 		for (Edge edge : new ArrayList<>(g.outgoingEdgesOf(node))) {
