@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CadytsModule extends AbstractModule {
 
@@ -86,8 +87,8 @@ public class CadytsModule extends AbstractModule {
                     return scenario.getNetwork().getLinks().get(id);
                 }
             };
-            Counts calibrationCounts = (Counts) scenario.getScenarioElement("calibrationCounts");
-            cadytsConfig.setCalibratedItems(calibrationCounts.getCounts().keySet());
+            Counts<Link> calibrationCounts = (Counts<Link>) scenario.getScenarioElement("calibrationCounts");
+            cadytsConfig.setCalibratedItems(calibrationCounts.getCounts().keySet().stream().map(Id::toString).collect(Collectors.toSet()));
             AnalyticalCalibrator<Link> linkAnalyticalCalibrator = CadytsBuilder.buildCalibratorAndAddMeasurements(scenario.getConfig(), calibrationCounts, linkLookUp, Link.class);
             for (MeasurementLoader<Link> measurementLoader : measurementLoaders) {
                 measurementLoader.load(linkAnalyticalCalibrator);

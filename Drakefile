@@ -25,7 +25,7 @@ berlin/uncongested3/travel-distance-histo.txt, berlin/uncongested3/travel-distan
 berlin/uncongested3/alternatives/random-heavy-users/sightings <- berlin/uncongested3/output-berlin
 	mvn -pl matsim-playground exec:java -Dexec.mainClass="populationsize.RunRandomHeavyUsers" -Dexec.args="$INPUT $OUTPUT"
 berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings
-	mvn -pl matsim-playground exec:java -Dexec.mainClass="populationsize.RunSimulation" -Dexec.args="$INPUT0 $INPUT1 $OUTPUT"
+	mvn -pl matsim-playground exec:java -Dexec.mainClass="populationsize.RunSimulation" -Dexec.args="full-procedure $INPUT0 $INPUT1 $OUTPUT"
 berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/en-route.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/run
 	Rscript en-route.R $INPUT0 $INPUT1 $OUTPUT
 
