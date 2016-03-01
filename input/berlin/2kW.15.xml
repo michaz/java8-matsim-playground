@@ -37,9 +37,6 @@
 		<param name="firstIteration" value="0" />
 		<param name="lastIteration" value="100" />
 
-		<!-- An identifier for the current run which is used as prefix for output files and mentioned in output xml files etc. -->
-		<param name="runId" value="2kW.15" />
-
 		<!-- Defines which mobility simulation will be used. Currently supported: queueSimulation, qsim, jdeqsim, multimodalQSim -->
 		<param name="mobsim" value="qsim" />
 

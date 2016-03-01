@@ -130,7 +130,7 @@ public class CallProcess implements ActivityStartEventHandler, ActivityEndEventH
 	}
 
 	private void call(double time, Id<Person> personId) {
-		String cellId = zoneTracker.getZoneForPerson(personId).toString();
+		String cellId = zoneTracker.getZoneForVehicle(Id.createVehicleId(personId)).toString();
 		Sighting sighting = new Sighting(personId, (long) time, cellId);
         List<Sighting> sightingsPerPerson = sightings.getSightingsPerPerson().get(personId);
         if (sightingsPerPerson == null) {

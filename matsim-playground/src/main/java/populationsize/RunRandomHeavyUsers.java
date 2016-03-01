@@ -6,6 +6,7 @@ import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.events.EventsManagerModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
@@ -19,8 +20,9 @@ import java.util.Random;
 public class RunRandomHeavyUsers {
 
 	public static void main(String[] args) {
-		String input = args[0];
-		String output = args[1];
+		double sample = Double.parseDouble(args[0]);
+		String input = args[1];
+		String output = args[2];
 		RunResource baseRun = new RunResource(input);
 		final Scenario baseScenario = baseRun.getLastIteration().getExperiencedPlansAndNetwork();
 		final double lightUserRate = 5.0;
@@ -28,7 +30,7 @@ public class RunRandomHeavyUsers {
 		Collections.shuffle(persons, new Random(42));
 		int i = 0;
 		for (Person person : persons) {
-			if (i < 9523) { // number of workers
+			if (i < 9523.0 * sample) { // number of workers
 				person.getCustomAttributes().put("phonerate", 50.0);
 			} else {
 				person.getCustomAttributes().put("phonerate", lightUserRate);
@@ -39,6 +41,7 @@ public class RunRandomHeavyUsers {
 		ReplayEvents.Results results = ReplayEvents.run(
 				baseScenario.getConfig(),
 				baseRun.getLastIteration().getEventsFileName(),
+				new EventsManagerModule(),
 				new VolumesAnalyzerModule(),
 				new CollectSightingsModule(),
 				new ScenarioByInstanceModule(baseScenario),

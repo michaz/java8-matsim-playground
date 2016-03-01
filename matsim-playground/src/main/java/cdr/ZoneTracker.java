@@ -7,6 +7,7 @@ import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.vehicles.Vehicle;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -26,19 +27,19 @@ public class ZoneTracker implements LinkEnterEventHandler {
     }
 
 
-    private Map<Id<Person>, Id<Zone>> personInZone = new HashMap<>();
+    private Map<Id<Vehicle>, Id<Zone>> vehicleInZone = new HashMap<>();
 
     private LinkToZoneResolver linkToZoneResolver;
 
     @Inject
     ZoneTracker(Scenario scenario, LinkToZoneResolver linkToZoneResolver) {
         this.linkToZoneResolver = linkToZoneResolver;
-        Map<Id<Person>, Id<Zone>> initialPersonInZone = new HashMap<>();
+        Map<Id<Vehicle>, Id<Zone>> initialPersonInZone = new HashMap<>();
         for (Person p : scenario.getPopulation().getPersons().values()) {
             Id<Link> linkId = ((Activity) p.getSelectedPlan().getPlanElements().get(0)).getLinkId();
-            initialPersonInZone.put(p.getId(), this.linkToZoneResolver.resolveLinkToZone(linkId));
+            initialPersonInZone.put(Id.createVehicleId(p.getId()), this.linkToZoneResolver.resolveLinkToZone(linkId));
         }
-        this.personInZone.putAll(initialPersonInZone);
+        this.vehicleInZone.putAll(initialPersonInZone);
     }
 
     @Override
@@ -46,13 +47,13 @@ public class ZoneTracker implements LinkEnterEventHandler {
         // Not resetting delegate EventsManager here. Not my job.
     }
 
-    public Id<Zone> getZoneForPerson(Id<Person> personId) {
-        return personInZone.get(personId);
+    public Id<Zone> getZoneForVehicle(Id<Vehicle> personId) {
+        return vehicleInZone.get(personId);
     }
 
     @Override
     public void handleEvent(LinkEnterEvent event) {
-        Id<Zone> oldZoneId = personInZone.get(event.getDriverId());
+        Id<Zone> oldZoneId = vehicleInZone.get(event.getVehicleId());
         Id<Zone> newZoneId = linkToZoneResolver.resolveLinkToZone(event.getLinkId());
         if (oldZoneId != null) {
             if (!oldZoneId.equals(newZoneId)) {
@@ -60,14 +61,14 @@ public class ZoneTracker implements LinkEnterEventHandler {
             }
             if (newZoneId != null) {
                 // this.eventsManager.processEvent(new ZoneEnterEvent(event.getTime(), event.getPersonId(), newZoneId));
-                personInZone.put(event.getDriverId(), newZoneId);
+                vehicleInZone.put(event.getVehicleId(), newZoneId);
             } else {
-                personInZone.remove(event.getDriverId());
+                vehicleInZone.remove(event.getVehicleId());
             }
         } else {
             if (newZoneId != null) {
                 // this.eventsManager.processEvent(new ZoneEnterEvent(event.getTime(), event.getPersonId(), newZoneId));
-                personInZone.put(event.getDriverId(), newZoneId);
+                vehicleInZone.put(event.getVehicleId(), newZoneId);
             }
         }
 
