@@ -30,15 +30,17 @@ import clones.CloneService;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.population.PlanImpl;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.PlanStrategyImpl;
 import org.matsim.core.replanning.modules.AbstractMultithreadedModule;
-import org.matsim.core.replanning.modules.ReRoute;
 import org.matsim.core.replanning.selectors.RandomPlanSelector;
+import org.matsim.core.router.PlanRouter;
 import org.matsim.core.router.TripRouter;
+import org.matsim.facilities.ActivityFacilities;
 import org.matsim.population.algorithms.PlanAlgorithm;
 
 import javax.inject.Inject;
@@ -50,6 +52,8 @@ public class TrajectoryReEnricherModule extends AbstractModule {
 
     @Override
     public void install() {
+		bind(MonitoringImpl.class).asEagerSingleton();
+		bind(TrajectoryReEnricherMonitoring.class).to(MonitoringImpl.class);
         addPlanStrategyBinding("ReRealize").toProvider(TrajectoryReEnricherProvider.class);
     }
 
@@ -59,22 +63,25 @@ public class TrajectoryReEnricherModule extends AbstractModule {
         private ZoneTracker.LinkToZoneResolver zones;
         private CloneService cloneService;
 		private Provider<TripRouter> tripRouterProvider;
+		private MonitoringImpl monitoring;
+		private ActivityFacilities facilities;
 
 		@Inject
-        TrajectoryReEnricherProvider(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService, Provider<TripRouter> tripRouterProvider) {
+        TrajectoryReEnricherProvider(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService, Provider<TripRouter> tripRouterProvider, MonitoringImpl monitoring, ActivityFacilities facilities) {
             this.scenario = scenario;
             this.sightings = sightings;
             this.zones = zones;
             this.cloneService = cloneService;
 			this.tripRouterProvider = tripRouterProvider;
+			this.monitoring = monitoring;
+			this.facilities = facilities;
 		}
 
         @Override
         public PlanStrategy get() {
-            PlanStrategyImpl planStrategy = new PlanStrategyImpl(new RandomPlanSelector<>());
-            planStrategy.addStrategyModule(new TrajectoryReEnricher(scenario, sightings, zones, cloneService));
-            planStrategy.addStrategyModule(new ReRoute(scenario, tripRouterProvider));
-            return planStrategy;
+			return new PlanStrategyImpl.Builder(new RandomPlanSelector<>())
+					.addStrategyModule(new TrajectoryReEnricher(scenario, sightings, zones, cloneService, monitoring, tripRouterProvider, facilities))
+					.build();
         }
     }
 
@@ -85,16 +92,22 @@ public class TrajectoryReEnricherModule extends AbstractModule {
 		private Scenario scenario;
 		private ZoneTracker.LinkToZoneResolver zones;
 		private CloneService cloneService;
+		private MonitoringImpl monitoring;
 		final Map<Id, List<Sighting>> dense;
 		private final Predicate<List<Sighting>> isDense = trace -> trace.size() > 20;
 		static final double SAMPLE=0.1;
+		private Provider<TripRouter> tripRouterProvider;
+		private ActivityFacilities facilities;
 
-		TrajectoryReEnricher(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService) {
+		TrajectoryReEnricher(Scenario scenario, Sightings sightings, ZoneTracker.LinkToZoneResolver zones, CloneService cloneService, MonitoringImpl monitoring, Provider<TripRouter> tripRouterProvider, ActivityFacilities facilities) {
 			super(scenario.getConfig().global());
 			this.sightings = sightings;
 			this.scenario = scenario;
 			this.zones = zones;
 			this.cloneService = cloneService;
+			this.monitoring = monitoring;
+			this.tripRouterProvider = tripRouterProvider;
+			this.facilities = facilities;
 			this.distanceCalculator = new DistanceCalculator(scenario.getNetwork());
 			this.dense = new HashMap<>();
 			sightings.getSightingsPerPerson().entrySet().stream().filter(entry -> isDense.test(entry.getValue()))
@@ -103,10 +116,13 @@ public class TrajectoryReEnricherModule extends AbstractModule {
 
 		@Override
 		public PlanAlgorithm getPlanAlgoInstance() {
+			PlanRouter planRouter = new PlanRouter(this.tripRouterProvider.get(), this.facilities);
 			List<Map.Entry<Id, List<Sighting>>> denseTraces = new ArrayList<>(dense.entrySet());
 			return plan -> {
-				Id personId = plan.getPerson().getId();
-				Id originalPersonId = cloneService.resolveParentId(personId);
+				TrajectoryReEnricherMonitoring.DataPoint dataPoint = new MonitoringImpl.DataPoint();
+				dataPoint.lengthBefore = plan.getPlanElements().stream().filter(pe -> pe instanceof Leg).mapToDouble(pe -> ((Leg) pe).getRoute().getDistance()).sum();
+				Id<Person> personId = plan.getPerson().getId();
+				Id<Person> originalPersonId = cloneService.resolveParentId(personId);
 				List<Sighting> originalTrace = sightings.getSightingsPerPerson().get(originalPersonId);
 				Plan newPlan;
 				if (isDense.test(originalTrace)) {
@@ -123,6 +139,9 @@ public class TrajectoryReEnricherModule extends AbstractModule {
 				plan.getPlanElements().clear();
 				((PlanImpl) plan).copyFrom(newPlan);
 				plan.getPlanElements().stream().filter(pe -> pe instanceof Leg).forEach(pe -> ((Leg) pe).setMode("car"));
+				planRouter.run(plan);
+				dataPoint.lengthAfter = plan.getPlanElements().stream().filter(pe -> pe instanceof Leg).mapToDouble(pe -> ((Leg) pe).getRoute().getDistance()).sum();
+				monitoring.lengthBeforeVsAfter.onNext(dataPoint);
 			};
 		}
 

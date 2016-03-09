@@ -15,7 +15,7 @@ histogram() [R]
 	all <- rbind(truth, initial, calibrated)
     all <- within(all, case <- factor(case, levels=(c("initial", "calibrated", "truth"))))
     ggplot(subset(all, distance < 200000), aes(x=distance/1000, fill=case)) +
-    	geom_histogram(position="dodge") +
+    	geom_histogram(position="dodge", binwidth = 20) +
     	theme_bw() +
     	labs(x = "All-day travel distance [km]", y = "Number of Inviduals", fill = "Case") +
     	scale_fill_manual(values=c("grey70", "grey50", "black")) +
@@ -53,7 +53,7 @@ berlin/uncongested3/alternatives/worker-heavy-users/alternatives/full-procedure/
 berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/en-route.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/run
 	Rscript en-route.R $INPUT0 $INPUT1 $OUTPUT
 
-%trajectorySimilarityApp <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings
+%trajectorySimilarityApp <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings
 	mvn -pl matsim-playground exec:java -Dexec.mainClass="fx.TrajectorySimilarityApp" -Dexec.args="--baseRunDir=$INPUT0 --sightingsDir=$INPUT1"
 berlin/uncongested3/alternatives/worker-heavy-users/trajectory-similarity-figures <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings
 	mvn -pl matsim-playground exec:java -Dexec.mainClass="fx.RunTrajectorySimilarityFigures" -Dexec.args="--baseRunDir=$INPUT0 --sightingsDir=$INPUT1 --output=$OUTPUT --sparse=17167184 --dense=16159661"

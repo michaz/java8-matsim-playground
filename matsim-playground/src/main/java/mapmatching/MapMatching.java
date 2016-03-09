@@ -1,12 +1,9 @@
 package mapmatching;
 
+import de.bmw.hmm.Hmm;
 import de.bmw.hmm.MostLikelySequence;
 import de.bmw.hmm.TimeStep;
-import de.bmw.offline_map_matching.map_matcher.OfflineMapMatcher;
-import de.bmw.offline_map_matching.map_matcher.SpatialMetrics;
-import de.bmw.offline_map_matching.map_matcher.TemporalMetrics;
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Identifiable;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Node;
@@ -82,7 +79,10 @@ public class MapMatching {
 						return dist;
 					}
 				};
-				MostLikelySequence<Link, MyTransitRouteStop> seq = OfflineMapMatcher.computeMostLikelySequence(timeSteps, temporalMetrics, spatialMetrics);
+				MapMatchingHmmProbabilities<Link, MyTransitRouteStop> probabilities =
+						new MapMatchingHmmProbabilities<>(timeSteps, spatialMetrics, temporalMetrics, 10.0, 0.01);
+				MostLikelySequence<Link, MyTransitRouteStop> seq = Hmm.computeMostLikelySequence(probabilities, timeSteps.iterator());
+
 				if (!seq.isBroken) {
 					if (!seq.sequence.isEmpty()) {
 						List<Id<Link>> linkIds = new ArrayList<>();
