@@ -31,6 +31,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.events.StartupEvent;
 import org.matsim.core.controler.listener.ControlerListener;
 import org.matsim.core.controler.listener.StartupListener;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PlanImpl;
 import org.matsim.core.replanning.selectors.ExpBetaPlanSelector;
 import org.matsim.core.replanning.selectors.RandomPlanSelector;
@@ -39,6 +40,7 @@ import org.matsim.core.scoring.SumScoringFunction;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 class ClonesControlerListener implements Provider<ControlerListener> {
 
@@ -59,9 +61,9 @@ class ClonesControlerListener implements Provider<ControlerListener> {
                 // clonefactor == 1 will leave everything as is, without stay-at-home-plans.
                 if (clonefactor > 1) {
                     for (Person person : scenario.getPopulation().getPersons().values()) {
-                        Plan plan2 = scenario.getPopulation().getFactory().createPlan();
-                        plan2.setType(EMPTY_CLONE_PLAN);
-                        person.addPlan(plan2);
+                        Plan plan = scenario.getPopulation().getFactory().createPlan();
+                        plan.setType(EMPTY_CLONE_PLAN);
+                        person.addPlan(plan);
                         person.setSelectedPlan(new RandomPlanSelector<Plan, Person>().selectPlan(person));
                     }
                     for (Person person : new ArrayList<>(scenario.getPopulation().getPersons().values())) {

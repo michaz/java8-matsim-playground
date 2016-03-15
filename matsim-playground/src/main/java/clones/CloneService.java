@@ -28,7 +28,9 @@ import org.matsim.core.scoring.SumScoringFunction;
 
 public interface CloneService {
 
-    public Id<Person> resolveParentId(Id<Person> cloneId);
+    Id<Person> resolveParentId(Id<Person> cloneId);
 
     SumScoringFunction.BasicScoring createNewScoringFunction(Person person);
+
+    boolean isActive(Id<Person> personId);
 }

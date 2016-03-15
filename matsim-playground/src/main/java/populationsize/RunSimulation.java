@@ -61,7 +61,7 @@ public class RunSimulation {
 		double cloneFactor;
 		if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
 			cloneFactor = 1.0;
-		} else if (alternative.equals("clone")) {
+		} else if (alternative.equals("clone") || alternative.equals("clone-with-histogram")) {
 			cloneFactor = 3.0;
 		} else {
 			throw new RuntimeException();
@@ -98,9 +98,10 @@ public class RunSimulation {
 			public void install() {
 				install(new CadytsModule());
 				install(new ClonesModule());
+				install(new PersoDistHistoModule());
 				if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
 					install(new TrajectoryReEnricherModule());
-				} else if (alternative.equals("clone")) {
+				} else if (alternative.equals("clone") || alternative.equals("clone-with-histogram")) {
 					install(new TrajectoryReRealizerModule());
 				} else {
 					throw new RuntimeException();
@@ -126,24 +127,24 @@ public class RunSimulation {
 				});
 			}
 		});
-		if (alternative.equals("full-procedure-with-histogram")) {
+		if (alternative.equals("full-procedure-with-histogram") || alternative.equals("clone-with-histogram")) {
 			controler.addControlerListener((StartupListener) startupEvent -> {
 				AnalyticalCalibrator<HistogramBin> calibrator = new AnalyticalCalibrator<>(startupEvent.getServices().getConfig().controler().getOutputDirectory() + "/cadyts-histogram.txt", MatsimRandom.getRandom().nextLong(), 24*60*60);
 				calibrator.setStatisticsFile(startupEvent.getServices().getControlerIO().getOutputFilename("histogram-calibration-stats.txt"));
-				calibrator.addMeasurement(HistogramBin.B0, 0, 24*60*60, 0.1 * 6308, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B20000, 0, 24*60*60, 0.1 *5601, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B40000, 0, 24*60*60, 0.1 *2930, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B60000, 0, 24*60*60, 0.1 *1510, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B80000, 0, 24*60*60, 0.1 *757, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B100000, 0, 24*60*60, 0.1 *427, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B120000, 0, 24*60*60, 0.1 *278, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B140000, 0, 24*60*60, 0.1 *143, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B160000, 0, 24*60*60, 0.1 *119, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B180000, 0, 24*60*60, 0.1 *80, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B200000, 0, 24*60*60, 0.1 *63, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B220000, 0, 24*60*60, 0.1 *53, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B240000, 0, 24*60*60, 0.1 *27, SingleLinkMeasurement.TYPE.COUNT_VEH);
-				calibrator.addMeasurement(HistogramBin.B260000, 0, 24*60*60, 0.1 *20, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B0, 0, 24*60*60, 494, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B20000, 0, 24*60*60, 541, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B40000, 0, 24*60*60, 331, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B60000, 0, 24*60*60, 176, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B80000, 0, 24*60*60, 83, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B100000, 0, 24*60*60, 53, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B120000, 0, 24*60*60, 25, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B140000, 0, 24*60*60, 18, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B160000, 0, 24*60*60, 17, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B180000, 0, 24*60*60, 6, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B200000, 0, 24*60*60, 4, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B220000, 0, 24*60*60, 10, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B240000, 0, 24*60*60, 6, SingleLinkMeasurement.TYPE.COUNT_VEH);
+				calibrator.addMeasurement(HistogramBin.B260000, 0, 24*60*60, 12, SingleLinkMeasurement.TYPE.COUNT_VEH);
 				startupEvent.getServices().addControlerListener((BeforeMobsimListener) beforeMobsimEvent -> {
 					for (Person person : beforeMobsimEvent.getServices().getScenario().getPopulation().getPersons().values()) {
 						double totalPlannedDistance = 0.0;
@@ -153,9 +154,7 @@ public class RunSimulation {
 								totalPlannedDistance += ((Leg) planElement).getRoute().getDistance();
 							}
 						}
-						if (totalPlannedDistance < 260000) {
-							planBuilder.addTurn(HistogramBin.values()[(int) (totalPlannedDistance / 20000.0)], 0);
-						}
+						planBuilder.addTurn(HistogramBin.values()[(int) (Math.min(totalPlannedDistance, 260000) / 20000.0)], 0);
 						calibrator.addToDemand(planBuilder.getResult());
 					}
 				});
@@ -210,7 +209,7 @@ public class RunSimulation {
 			});
 		}
 		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
-		factory.setCadytsweight(cadytsWeight);
+		factory.setCadytsweight(0.0);
 		controler.setScoringFunctionFactory(factory);
 		controler.run();
 	}

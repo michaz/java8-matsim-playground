@@ -1,6 +1,7 @@
 package cdr;
 
 
+import clones.CloneService;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
@@ -11,9 +12,11 @@ import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Injector;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.controler.events.BeforeMobsimEvent;
 import org.matsim.core.controler.events.IterationEndsEvent;
 import org.matsim.core.controler.events.IterationStartsEvent;
 import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.BeforeMobsimListener;
 import org.matsim.core.controler.listener.IterationEndsListener;
 import org.matsim.core.controler.listener.IterationStartsListener;
 import org.matsim.core.controler.listener.StartupListener;
@@ -63,11 +66,12 @@ public class PersoDistHistoModule extends AbstractModule {
 		addControlerListenerBinding().to(PersoDistHistoControlerListener.class).asEagerSingleton();
 	}
 
-	private static class PersoDistHistoControlerListener implements EventsToLegs.LegHandler, StartupListener, IterationStartsListener, IterationEndsListener {
+	private static class PersoDistHistoControlerListener implements EventsToLegs.LegHandler, StartupListener, BeforeMobsimListener, IterationEndsListener {
 
 		@Inject Population population;
 		@Inject EventsToLegs experiencedPlanElementsService;
 		@Inject OutputDirectoryHierarchy controlerIO;
+		@Inject CloneService cloneService;
 
 		private HashMap<Id<Person>, Double> distances;
 
@@ -77,10 +81,12 @@ public class PersoDistHistoModule extends AbstractModule {
 		}
 
 		@Override
-		public void notifyIterationStarts(IterationStartsEvent iterationStartsEvent) {
+		public void notifyBeforeMobsim(BeforeMobsimEvent beforeMobsimEvent) {
 			distances = new HashMap<>();
 			for (Id<Person> personId : population.getPersons().keySet()) {
-				distances.put(personId, 0.0);
+				if (cloneService.isActive(personId)) {
+					distances.put(personId, 0.0);
+				}
 			}
 		}
 

@@ -24,6 +24,7 @@ package clones;
 
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scoring.SumScoringFunction;
@@ -33,10 +34,14 @@ import javax.inject.Inject;
 class CloneServiceImpl implements CloneService {
 
     private final double clonefactor;
+    private final Population population;
+    private final double beta;
 
     @Inject
-    CloneServiceImpl(Config config) {
+    CloneServiceImpl(Config config, Population population) {
         this.clonefactor = ConfigUtils.addOrGetModule(config, ClonesConfigGroup.NAME, ClonesConfigGroup.class).getCloneFactor();
+        this.population = population;
+        this.beta = config.planCalcScore().getBrainExpBeta();
     }
 
     @Override
@@ -53,6 +58,11 @@ class CloneServiceImpl implements CloneService {
     @Override
     public SumScoringFunction.BasicScoring createNewScoringFunction(Person person) {
         return new CloneScoring(person);
+    }
+
+    @Override
+    public boolean isActive(Id<Person> personId) {
+        return !ClonesControlerListener.EMPTY_CLONE_PLAN.equals(population.getPersons().get(personId).getSelectedPlan().getType());
     }
 
     private class CloneScoring implements SumScoringFunction.BasicScoring {
@@ -75,7 +85,8 @@ class CloneServiceImpl implements CloneService {
         }
 
         private double scoreOffset() {
-            return - Math.log((clonefactor - 1.0) * (person.getPlans().size() - 1.0));
+            long nEmptyClonePlans = person.getPlans().stream().filter(p -> ClonesControlerListener.EMPTY_CLONE_PLAN.equals(p.getType())).count();
+            return - Math.log((clonefactor - 1.0) * (person.getPlans().size() - (double) nEmptyClonePlans) / (double) nEmptyClonePlans) / beta;
         }
 
     }

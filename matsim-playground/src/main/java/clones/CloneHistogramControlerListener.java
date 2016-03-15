@@ -72,8 +72,8 @@ class CloneHistogramControlerListener implements Provider<ControlerListener> {
                 for (Person person : scenario.getPopulation().getPersons().values()) {
                     Id<Person> originalId = cloneService.resolveParentId(person.getId());
                     for (Plan plan : person.getPlans()) {
-                        if (plan.getPlanElements().size() > 1) {
-                            double selectionProbability = ExpBetaPlanSelector.getSelectionProbability(new ExpBetaPlanSelector<Plan, Person>(1.0), person, plan);
+                        if (!ClonesControlerListener.EMPTY_CLONE_PLAN.equals(plan.getType())) {
+                            double selectionProbability = ExpBetaPlanSelector.getSelectionProbability(new ExpBetaPlanSelector<>(scenario.getConfig().planCalcScore()), person, plan);
                             Double previous = expectedNumberOfClones.get(originalId);
                             if (previous == null)
                                 expectedNumberOfClones.put(originalId, selectionProbability);

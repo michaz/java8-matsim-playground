@@ -25,11 +25,10 @@ histogram() [R]
 
 berlin/uncongested3/travel-distance-histo-random.txt, berlin/uncongested3/travel-distance-histo-random.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/run [method:histogram]
 berlin/uncongested3/travel-distance-histo-random-with-histogram.txt, berlin/uncongested3/travel-distance-histo-random-with-histogram.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure-with-histogram/run [method:histogram]
+berlin/uncongested3/travel-distance-histo-random-clone-with-histogram.txt, berlin/uncongested3/travel-distance-histo-random-clone-with-histogram.pdf <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/alternatives/clone-with-histogram/run [method:histogram]
 
 run_simulation()
     mvn -pl matsim-playground exec:java -Dexec.mainClass="populationsize.RunSimulation" -Dexec.args="$ALTERNATIVE $INPUT0 $INPUT1 $OUTPUT"
-    mvn -pl matsim-playground exec:java -Dexec.mainClass="cdr.PersoDistHistoModule" -Dexec.args="$OUTPUT 0"
-    mvn -pl matsim-playground exec:java -Dexec.mainClass="cdr.PersoDistHistoModule" -Dexec.args="$OUTPUT 100"
 
 ALTERNATIVE=full-procedure
 berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings [method:run_simulation]
@@ -40,6 +39,11 @@ berlin/uncongested3/alternatives/random-heavy-users/alternatives/full-procedure-
 
 ALTERNATIVE=clone
 berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings [method:run_simulation]
+berlin/uncongested3/alternatives/random-heavy-users/alternatives/clone/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings [method:run_simulation]
+
+ALTERNATIVE=clone-with-histogram
+berlin/uncongested3/alternatives/worker-heavy-users/alternatives/clone-with-histogram/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/worker-heavy-users/sightings [method:run_simulation]
+berlin/uncongested3/alternatives/random-heavy-users/alternatives/clone-with-histogram/run <- berlin/uncongested3/output-berlin, berlin/uncongested3/alternatives/random-heavy-users/sightings [method:run_simulation]
 
 berlin/uncongested3/alternatives/random-heavy-users/sightings <- berlin/uncongested3/output-berlin
 	mvn -pl matsim-playground exec:java -Dexec.mainClass="populationsize.RunRandomHeavyUsers" -Dexec.args="$SAMPLE $INPUT $OUTPUT"
