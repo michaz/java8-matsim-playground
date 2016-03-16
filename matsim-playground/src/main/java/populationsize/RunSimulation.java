@@ -6,6 +6,7 @@ import cadyts.demand.PlanBuilder;
 import cadyts.measurements.SingleLinkMeasurement;
 import cadyts.supply.SimResults;
 import cdr.*;
+import clones.CloneService;
 import clones.ClonesConfigGroup;
 import clones.ClonesModule;
 import com.google.inject.Key;
@@ -40,6 +41,7 @@ import org.matsim.counts.CountsReaderMatsimV1;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.EnumMap;
+import java.util.HashMap;
 
 public class RunSimulation {
 
@@ -56,7 +58,7 @@ public class RunSimulation {
 
 		RunResource baseRun = new RunResource(baseRunDir);
 
-		final double cadytsWeight = 100.0;
+		final double cadytsWeight = 0.0;
 		int lastIteration = 100;
 		double cloneFactor;
 		if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
@@ -79,6 +81,13 @@ public class RunSimulation {
 		new SightingsReader(allSightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
 		final ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
 
+//		PlanStrategy reEnrich = controler.getInjector().getInstance(Key.get(PlanStrategy.class, Names.named("ReRealize")));
+//		reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
+//		scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
+//		reEnrich.finish();
+
+		// TODO: replace with full procedure (like in commented out code above)
+		// TODO: Otherwise, initial travel length distribution is biased because we start with non-enriched traces.
 		PopulationFromSightings.createPopulationWithRandomRealization(scenario, allSightings, linkToZoneResolver);
 
 		final Counts allCounts = new Counts();
@@ -113,18 +122,6 @@ public class RunSimulation {
 						bind(Sightings.class).toInstance(allSightings);
 					}
 				});
-				addControlerListenerBinding().toInstance((IterationStartsListener) startupEvent -> {
-					if (startupEvent.getIteration() == 0) {
-//						scenario.getPopulation().getPersons().values().forEach(p -> {
-//							p.setSelectedPlan(null);
-//							p.getPlans().clear();
-//						});
-						PlanStrategy reEnrich = controler.getInjector().getInstance(Key.get(PlanStrategy.class, Names.named("ReRealize")));
-						reEnrich.init(controler.getInjector().getInstance(ReplanningContext.class));
-						scenario.getPopulation().getPersons().values().forEach(reEnrich::run);
-						reEnrich.finish();
-					}
-				});
 			}
 		});
 		if (alternative.equals("full-procedure-with-histogram") || alternative.equals("clone-with-histogram")) {
@@ -146,37 +143,31 @@ public class RunSimulation {
 				calibrator.addMeasurement(HistogramBin.B240000, 0, 24*60*60, 6, SingleLinkMeasurement.TYPE.COUNT_VEH);
 				calibrator.addMeasurement(HistogramBin.B260000, 0, 24*60*60, 12, SingleLinkMeasurement.TYPE.COUNT_VEH);
 				startupEvent.getServices().addControlerListener((BeforeMobsimListener) beforeMobsimEvent -> {
+					CloneService cloneService = beforeMobsimEvent.getServices().getInjector().getInstance(CloneService.class);
 					for (Person person : beforeMobsimEvent.getServices().getScenario().getPopulation().getPersons().values()) {
-						double totalPlannedDistance = 0.0;
 						PlanBuilder<HistogramBin> planBuilder = new PlanBuilder<>();
-						for (PlanElement planElement : person.getSelectedPlan().getPlanElements()) {
-							if (planElement instanceof Leg) {
-								totalPlannedDistance += ((Leg) planElement).getRoute().getDistance();
+						if (cloneService.isActive(person.getId())) { // Inactive clones are not in a histogram bin
+							double totalPlannedDistance = 0.0;
+							for (PlanElement planElement : person.getSelectedPlan().getPlanElements()) {
+								if (planElement instanceof Leg) {
+									totalPlannedDistance += ((Leg) planElement).getRoute().getDistance();
+								}
 							}
+							planBuilder.addTurn(HistogramBin.values()[(int) (Math.min(totalPlannedDistance, 260000) / 20000.0)], 0);
 						}
-						planBuilder.addTurn(HistogramBin.values()[(int) (Math.min(totalPlannedDistance, 260000) / 20000.0)], 0);
 						calibrator.addToDemand(planBuilder.getResult());
 					}
 				});
-				TObjectDoubleHashMap<Id<Person>> distances = new TObjectDoubleHashMap<>();
-				startupEvent.getServices().getInjector().getInstance(EventsToLegs.class).addLegHandler(new EventsToLegs.LegHandler() {
-					@Override
-					public void handleLeg(PersonExperiencedLeg personExperiencedLeg) {
-						double distance = personExperiencedLeg.getLeg().getRoute().getDistance();
-						distances.adjustOrPutValue(personExperiencedLeg.getAgentId(), distance, distance);
-					}
-				});
 				startupEvent.getServices().addControlerListener((AfterMobsimListener) afterMobsimEvent -> {
+					PersoDistHistogram distService = afterMobsimEvent.getServices().getInjector().getInstance(PersoDistHistogram.class);
 					EnumMap<HistogramBin, Integer> frequencies = new EnumMap<>(HistogramBin.class);
 					for (HistogramBin bin : HistogramBin.values()) {
 						frequencies.put(bin, 0);
 					}
-					distances.forEachValue(v -> {
-						if (v < 260000) {
-							HistogramBin bin = HistogramBin.values()[(int) (v / 20000.0)];
-							frequencies.put(bin, frequencies.get(bin) + 1);
-						}
-						return true;
+					HashMap<Id<Person>, Double> distances = distService.getDistances();
+					distances.values().forEach(v -> {
+						HistogramBin bin = HistogramBin.values()[(int) (Math.min(v, 260000) / 20000.0)];
+						frequencies.put(bin, frequencies.get(bin) + 1);
 					});
 					calibrator.afterNetworkLoading(new SimResults<HistogramBin>() {
 						@Override
@@ -184,16 +175,12 @@ public class RunSimulation {
 							return frequencies.get(histogramBin);
 						}
 					});
-					distances.forEachEntry((personId, v) -> {
+					distances.forEach((personId, v) -> {
 						PlanBuilder<HistogramBin> planBuilder = new PlanBuilder<>();
-						if (v < 260000) {
-							planBuilder.addTurn(HistogramBin.values()[(int) (v / 20000.0)], 0);
-						}
+						planBuilder.addTurn(HistogramBin.values()[(int) (Math.min(v, 260000) / 20000.0)], 0);
 						double offset = calibrator.calcLinearPlanEffect(planBuilder.getResult());
-						afterMobsimEvent.getServices().getEvents().processEvent(new PersonMoneyEvent(Time.UNDEFINED_TIME, personId, cadytsWeight * offset));
-						return true;
+						afterMobsimEvent.getServices().getEvents().processEvent(new PersonMoneyEvent(Time.UNDEFINED_TIME, personId, 100.0 * offset));
 					});
-					distances.clear();
 				});
 				if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
 					try {
@@ -209,7 +196,7 @@ public class RunSimulation {
 			});
 		}
 		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
-		factory.setCadytsweight(0.0);
+		factory.setCadytsweight(cadytsWeight);
 		controler.setScoringFunctionFactory(factory);
 		controler.run();
 	}

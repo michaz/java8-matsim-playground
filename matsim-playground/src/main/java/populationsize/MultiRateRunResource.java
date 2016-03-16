@@ -184,7 +184,7 @@ public class MultiRateRunResource {
         {
             StrategySettings stratSets = new StrategyConfigGroup.StrategySettings(Id.create(3, StrategySettings.class));
             stratSets.setStrategyName("SelectRandom");
-            stratSets.setWeight(0.1);
+            stratSets.setWeight(0.1 / cloneFactor);
             stratSets.setDisableAfter((int) (lastIteration * 0.5));
             config.strategy().addStrategySettings(stratSets);
         }

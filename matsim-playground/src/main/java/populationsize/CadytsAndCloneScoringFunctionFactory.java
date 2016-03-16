@@ -33,6 +33,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.core.scoring.SumScoringFunction;
+import org.matsim.core.scoring.functions.CharyparNagelMoneyScoring;
 
 import javax.inject.Inject;
 
@@ -65,7 +66,7 @@ public class CadytsAndCloneScoringFunctionFactory implements ScoringFunctionFact
 
         // prior
         sumScoringFunction.addScoringFunction(cloneService.createNewScoringFunction(person));
-
+        sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(1.0));
 
         return sumScoringFunction;
     }

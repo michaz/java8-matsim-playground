@@ -63,10 +63,12 @@ public class PersoDistHistoModule extends AbstractModule {
 
 	@Override
 	public void install() {
-		addControlerListenerBinding().to(PersoDistHistoControlerListener.class).asEagerSingleton();
+		bind(PersoDistHistoControlerListener.class).asEagerSingleton();
+		bind(PersoDistHistogram.class).to(PersoDistHistoControlerListener.class);
+		addControlerListenerBinding().to(PersoDistHistoControlerListener.class);
 	}
 
-	private static class PersoDistHistoControlerListener implements EventsToLegs.LegHandler, StartupListener, BeforeMobsimListener, IterationEndsListener {
+	private static class PersoDistHistoControlerListener implements EventsToLegs.LegHandler, StartupListener, BeforeMobsimListener, IterationEndsListener, PersoDistHistogram {
 
 		@Inject Population population;
 		@Inject EventsToLegs experiencedPlanElementsService;
@@ -106,6 +108,12 @@ public class PersoDistHistoModule extends AbstractModule {
 				}
 			});
 		}
+
+		@Override
+		public HashMap<Id<Person>, Double> getDistances() {
+			return distances;
+		}
+
 	}
 
 }
