@@ -1,0 +1,115 @@
+configurations {
+    wurst
+}
+
+dependencies {
+    wurst project(':matsim-playground')
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "http://dl.bintray.com/matsim/matsim" }
+    maven { url "http://download.osgeo.org/webdav/geotools" }
+    maven { url "http://oss.jfrog.org/artifactory/libs-snapshot" }
+}
+
+def sample = 0.1
+def Rscript = '/usr/local/bin/Rscript'
+
+def truths = ['uncongested3', 'congested3']
+
+task uncongested3(type: JavaExec) {
+    def input = file('input/berlin/2kW.15.xml')
+    def output = file('output/berlin/uncongested3/output-berlin')
+    classpath = configurations.wurst
+    inputs.file input
+    outputs.dir output
+    main = 'berlin.BerlinRunUncongested3'
+    args sample, input.getPath(), output.getPath()
+}
+
+task congested3(type: JavaExec) {
+    def input = file('input/berlin/2kW.15.xml')
+    def output = file('output/berlin/congested3/output-berlin')
+    classpath = configurations.wurst
+    inputs.file input
+    outputs.dir output
+    main = 'berlin.BerlinRunCongested3'
+    args sample, input.getPath(), output.getPath()
+}
+
+def usages = ['random-heavy-users', 'worker-heavy-users', 'only-heavy-users']
+
+truths.each { truth ->
+    task (truth + "_random-heavy-users", type: JavaExec, dependsOn: truth) {
+        def input = file("output/berlin/$truth/output-berlin")
+        def output = file("output/berlin/$truth/alternatives/random-heavy-users/sightings")
+        classpath = configurations.wurst
+        inputs.dir input
+        outputs.dir output
+        main = 'populationsize.RunRandomHeavyUsers'
+        args sample, input.getPath(), output.getPath()
+    }
+}
+
+truths.each { truth ->
+    task (truth + "_worker-heavy-users", type: JavaExec, dependsOn: truth) {
+        def input = file("output/berlin/$truth/output-berlin")
+        def output = file("output/berlin/$truth/alternatives/worker-heavy-users/sightings")
+        classpath = configurations.wurst
+        inputs.dir input
+        outputs.dir output
+        main = 'populationsize.RunWorkerNonWorker'
+        args sample, input.getPath(), output.getPath()
+    }
+}
+
+truths.each { truth ->
+    task (truth + "_only-heavy-users", type: JavaExec, dependsOn: truth) {
+        def input = file("output/berlin/$truth/output-berlin")
+        def output = file("output/berlin/$truth/alternatives/only-heavy-users/sightings")
+        classpath = configurations.wurst
+        inputs.dir input
+        outputs.dir output
+        main = 'populationsize.RunOnlyHeavyUsers'
+        args sample, input.getPath(), output.getPath()
+    }
+}
+
+def alternatives = ['full-procedure', 'full-procedure-with-histogram', 'clone', 'clone-with-histogram']
+truths.each { truth ->
+    usages.each { usage ->
+        alternatives.each { alternative ->
+            def baseRun = file("output/berlin/$truth/output-berlin")
+            def run = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/run")
+            Task simulate = task("simulate_" + truth + "_" + usage + "_" + alternative, type: JavaExec, dependsOn: truth + "_" + usage) {
+                def sightings = file("output/berlin/$truth/alternatives/$usage/sightings")
+                classpath = configurations.wurst
+                inputs.dir baseRun
+                inputs.dir sightings
+                outputs.dir run
+                main = 'populationsize.RunSimulation'
+                args alternative, baseRun.getPath(), sightings.getPath(), run.getPath()
+            }
+            task ("histogram_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
+                def txt = file("output/berlin/$truth/travel-distance-histo_" + usage + "_" + alternative+ ".txt")
+                def pdf = file("output/berlin/$truth/travel-distance-histo_" + usage + "_" + alternative+ ".pdf")
+                inputs.dir baseRun
+                inputs.dir run
+                outputs.file txt
+                outputs.file pdf
+                commandLine Rscript, 'histogram.R', baseRun.getPath(), run.getPath(), txt.getPath(), pdf.getPath()
+            }
+            task ("en-route_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
+                def pdf = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route.pdf")
+                inputs.dir baseRun
+                inputs.dir run
+                outputs.file pdf
+                commandLine Rscript, 'en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath()
+            }
+        }
+    }
+}
+
+

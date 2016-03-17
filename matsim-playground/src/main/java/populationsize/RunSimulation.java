@@ -66,7 +66,7 @@ public class RunSimulation {
 		} else if (alternative.equals("clone") || alternative.equals("clone-with-histogram")) {
 			cloneFactor = 3.0;
 		} else {
-			throw new RuntimeException();
+			throw new RuntimeException(alternative);
 		}
 
 		final Config config = MultiRateRunResource.phoneConfig(lastIteration, cloneFactor);

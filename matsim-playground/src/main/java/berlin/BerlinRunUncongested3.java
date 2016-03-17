@@ -23,6 +23,7 @@
 package berlin;
 
 import cdr.PersoDistHistoModule;
+import clones.ClonesModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
@@ -58,6 +59,7 @@ public class BerlinRunUncongested3 {
 
 		final Controler controller = new Controler(scenario);
 		controller.addOverridingModule(new PersoDistHistoModule());
+		controller.addOverridingModule(new ClonesModule());
 		controller.addControlerListener(new ShutdownListener() {
 			@Override
 			public void notifyShutdown(ShutdownEvent shutdownEvent) {
