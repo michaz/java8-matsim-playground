@@ -31,6 +31,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.events.EventsManagerModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
@@ -56,6 +57,7 @@ public class RunOnlyHeavyUsers {
 				baseScenario.getConfig(),
 				baseRun.getLastIteration().getEventsFileName(),
 				new VolumesAnalyzerModule(),
+				new EventsManagerModule(),
 				new ScenarioByInstanceModule(baseScenario),
 				new CollectSightingsModule(),
 				new CallBehaviorModule(new OnlyBasedOnPhonerateAttribute(), linkToZoneResolver));

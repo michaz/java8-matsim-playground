@@ -12,6 +12,7 @@ import org.matsim.core.router.TripRouterModule;
 import org.matsim.core.router.costcalculators.TravelDisutilityModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
+import org.matsim.core.scoring.ExperiencedPlansModule;
 import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionModule;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculatorModule;
 import org.matsim.counts.Counts;
@@ -32,6 +33,7 @@ class MyModule extends AbstractModule {
         this.install(new CharyparNagelScoringFunctionModule());
         this.install(new TripRouterModule());
         this.install(new StrategyManagerModule());
+        this.install(new ExperiencedPlansModule());
 //        this.install(new LinkStatsModule());
 //        this.install(new VolumesAnalyzerModule());
 //        this.install(new LegHistogramModule());

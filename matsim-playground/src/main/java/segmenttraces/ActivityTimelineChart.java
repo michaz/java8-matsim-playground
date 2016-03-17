@@ -19,10 +19,13 @@ import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
+import org.matsim.core.controler.Injector;
 import org.matsim.core.controler.ReplayEvents;
+import org.matsim.core.events.EventsManagerModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.*;
+import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionModule;
 import org.matsim.core.utils.misc.Time;
 import populationsize.ExperimentResource;
 import populationsize.IterationResource;
@@ -124,14 +127,15 @@ public class ActivityTimelineChart {
 		scenarioBuilder.setNetwork(network);
 		scenarioBuilder.setPopulation(iteration.getPlans());
 		Scenario scenario = scenarioBuilder.build();
-		ReplayEvents.Results run = ReplayEvents.run(scenario.getConfig(), iteration.getEventsFileName(), new AbstractModule() {
-			@Override
-			public void install() {
-				install(new ExperiencedPlanElementsModule());
-				install(new ScenarioByInstanceModule(scenario));
-			}
-		});
-		return run.get(ExperiencedPlansService.class).getAgentRecords();
+		com.google.inject.Injector injector = Injector.createInjector(scenario.getConfig(),
+				new ExperiencedPlansModule(),
+				new EventsManagerModule(),
+				new ScenarioByInstanceModule(scenario),
+				new ReplayEvents.Module());
+		ReplayEvents replayEvents = injector.getInstance(ReplayEvents.class);
+		replayEvents.playEventsFile(iteration.getEventsFileName(), 0);
+		ExperiencedPlansService instance = injector.getInstance(ExperiencedPlansService.class);
+		return instance.getAgentRecords();
 	}
 
 }

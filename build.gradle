@@ -16,6 +16,7 @@ repositories {
 
 def sample = 0.1
 def Rscript = '/usr/local/bin/Rscript'
+def dot = '/usr/local/bin/dot'
 
 def truths = ['uncongested3', 'congested3']
 
@@ -61,7 +62,7 @@ truths.each { truth ->
         inputs.dir input
         outputs.dir output
         main = 'populationsize.RunWorkerNonWorker'
-        args sample, input.getPath(), output.getPath()
+        args input.getPath(), output.getPath()
     }
 }
 
@@ -73,8 +74,20 @@ truths.each { truth ->
         inputs.dir input
         outputs.dir output
         main = 'populationsize.RunOnlyHeavyUsers'
-        args sample, input.getPath(), output.getPath()
+        args input.getPath(), output.getPath()
     }
+}
+
+task ('simulate_uncongested3_only-heavy-users_segmentation-only', type: JavaExec, dependsOn: 'uncongested3_only-heavy-users') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/only-heavy-users/sightings')
+    def output = file("output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run")
+    classpath = configurations.wurst
+    main = 'segmenttraces.RunTrajectorySegmentationOnly'
+    args baseRun.getPath(), sightingsDir.getPath(), output.getPath()
+    inputs.dir baseRun
+    inputs.dir sightingsDir
+    outputs.dir output
 }
 
 def alternatives = ['full-procedure', 'full-procedure-with-histogram', 'clone', 'clone-with-histogram']
@@ -112,4 +125,87 @@ truths.each { truth ->
     }
 }
 
+task guice1(type: JavaExec) {
+    def input = file('input/graphconfig.xml')
+    def output = file('output/guice1')
+    classpath = configurations.wurst
+    inputs.file input
+    outputs.dir output
+    main = 'guice.Graph'
+    args input.getPath(), 'guice.MyModule', output.getPath()
+}
+guice1 << {
+    (dot + " -Tsvg -ooutput/guice1/guice.svg output/guice1/guice.dot").execute()
+    (dot + " -Tpdf -ooutput/guice1/guice.pdf output/guice1/guice.dot").execute()
+}
+
+task guice(type: JavaExec) {
+    def input = file('input/graphconfig.xml')
+    def output = file('output/guice')
+    classpath = configurations.wurst
+    inputs.file input
+    outputs.dir output
+    main = 'guice.Graph2'
+    args input.getPath(), 'guice.MyModule', output.getPath()
+}
+guice << {
+    (dot + " -Tsvg -ooutput/guice/guice.svg output/guice/guice.dot").execute()
+    (dot + " -Tpdf -ooutput/guice/guice.pdf output/guice/guice.dot").execute()
+}
+
+task legHistogramApp(type: JavaExec, dependsOn: uncongested3) {
+    def input = file('output/berlin/uncongested3/output-berlin')
+    classpath = configurations.wurst
+    main = 'fx.LegHistogramApp'
+    args '--runDir='+input.getPath()
+    inputs.dir input
+}
+
+task trajectorySimilarityApp(type: JavaExec, dependsOn: 'uncongested3_worker-heavy-users') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/worker-heavy-users/sightings')
+    classpath = configurations.wurst
+    main = 'fx.TrajectorySimilarityApp'
+    args '--baseRunDir='+baseRun.getPath(), '--sightingsDir='+sightingsDir.getPath()
+    inputs.dir baseRun
+    inputs.dir sightingsDir
+}
+
+task trajectorySimilarityFigures(type: JavaExec, dependsOn: 'uncongested3_worker-heavy-users') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/worker-heavy-users/sightings')
+    def output = file('output/berlin/uncongested3/alternatives/worker-heavy-users/trajectory-similarity-figures')
+    classpath = configurations.wurst
+    main = 'fx.RunTrajectorySimilarityFigures'
+    args '--baseRunDir='+baseRun.getPath(), '--sightingsDir='+sightingsDir.getPath(), '--output='+output.getPath(), '--sparse=17167184', '--dense=16159661'
+    inputs.dir baseRun
+    inputs.dir sightingsDir
+    outputs.dir output
+}
+
+task activityStructure(type: JavaExec, dependsOn: 'simulate_uncongested3_only-heavy-users_segmentation-only') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/only-heavy-users/sightings')
+    def run = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run')
+    def png = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/activity-structure.png')
+    classpath = configurations.wurst
+    main = 'segmenttraces.RunActivityStructure'
+    args baseRun.getPath(), sightingsDir.getPath(), run.getPath(), png.getPath()
+    inputs.dir baseRun
+    inputs.dir sightingsDir
+    inputs.dir run
+    outputs.file png
+}
+
+task activityStructureDistance(type: JavaExec, dependsOn: 'simulate_uncongested3_only-heavy-users_segmentation-only') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def run = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run')
+    def png = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/activity-structure-distance.png')
+    classpath = configurations.wurst
+    main = 'segmenttraces.RunActivityStructureDistance'
+    args '--baseRunDir='+baseRun.getPath(), '--runDir='+run.getPath(), '--output='+png.getPath()
+    inputs.dir baseRun
+    inputs.dir run
+    outputs.file png
+}
 

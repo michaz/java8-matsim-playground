@@ -5,7 +5,6 @@ import cdr.Sightings;
 import cdr.SightingsImpl;
 import cdr.SightingsReader;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -21,7 +20,6 @@ import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import populationsize.*;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +35,6 @@ public class RunActivityStructure {
 		String sightingsDir = args[1];
 		String runDir = args[2];
 		String output = args[3];
-		Collection<Id<Person>> agents = getAgentIds();
 		RunResource run = new RunResource(runDir);
 		RunResource baseRun = new RunResource(baseRunDir);
 
@@ -46,6 +43,7 @@ public class RunActivityStructure {
 
 		final Sightings sightings = new SightingsImpl();
 		new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
+		Collection<Id<Person>> agents = getAgentIds((Set<Id<Person>>) (Set) sightings.getSightingsPerPerson().keySet());
 		sightings.getSightingsPerPerson().keySet().retainAll(agents);
 
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
@@ -53,7 +51,7 @@ public class RunActivityStructure {
 		LinkedHashMap<Id, List<Sighting>> sortedSightings = new LinkedHashMap<>();
 		LinkedHashMap<Id<Person>, Plan> sortedPopulation = new LinkedHashMap<>();
 		LinkedHashMap<Id<Person>, Plan> sortedOriginalPopulation = new LinkedHashMap<>();
-		for (Id<Person> personId : getAgentIds()) {
+		for (Id<Person> personId : agents) {
 			sortedSightings.put(personId, sightings.getSightingsPerPerson().get(personId));
 			sortedPopulation.put(personId, population.get(personId));
 			sortedOriginalPopulation.put(personId, originalPopulation.get(personId));
@@ -88,11 +86,13 @@ public class RunActivityStructure {
 
 	}
 
-	static Collection<Id<Person>> getAgentIds() {
+	static Collection<Id<Person>> getAgentIds(Set<Id<Person>> ids) {
+		List<Id> idList = new ArrayList<>(ids);
+		Collections.shuffle(idList);
 		Collection<Id<Person>> agents = new ArrayList<>();
-		agents.add(Id.createPersonId("24122484"));
-		agents.add(Id.createPersonId("14104774"));
-		agents.add(Id.createPersonId("23135904"));
+		agents.add(idList.get(0));
+		agents.add(idList.get(1));
+		agents.add(idList.get(2));
 		return agents;
 	}
 

@@ -65,7 +65,7 @@ public class RunActivityStructureDistance extends Application {
 		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
 		DistanceCalculator distanceCalculator = new DistanceCalculator(network);
 		final VBox vBox = new VBox();
-		for (Id personId : RunActivityStructure.getAgentIds()) {
+		for (Id personId : RunActivityStructure.getAgentIds(population.keySet())) {
 			DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
 			chart.chart.getStylesheets().add(TrajectorySimilarityApp.class.getResource("activity-structure-distance.css").toExternalForm());
 			chart.sparse.setAll(plan2sightings(originalPopulation.get(personId), personId));
