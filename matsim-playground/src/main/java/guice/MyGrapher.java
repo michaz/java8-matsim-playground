@@ -8,6 +8,7 @@ import com.google.inject.Binding;
 import com.google.inject.Key;
 import com.google.inject.grapher.*;
 import com.google.inject.grapher.graphviz.*;
+import com.google.inject.name.Names;
 import com.google.inject.spi.InjectionPoint;
 import com.google.inject.spi.ProviderBinding;
 import com.google.inject.util.Types;
@@ -25,7 +26,9 @@ import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.router.RoutingModule;
 import org.matsim.core.router.TripRouter;
 import org.matsim.core.router.costcalculators.TravelDisutilityFactory;
+import org.matsim.core.router.util.LeastCostPathCalculatorFactory;
 import org.matsim.core.router.util.TravelTime;
+import org.matsim.core.scoring.ScoringFunctionFactory;
 import org.matsim.vis.snapshotwriters.SnapshotWriter;
 
 import javax.inject.Provider;
@@ -149,11 +152,15 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		out.println(nodes.get(NodeId.newTypeId(Key.get(Mobsim.class))).getIdentifier()+";");
 		out.println(nodes.get(NodeId.newTypeId(Key.get(TripRouter.class))).getIdentifier()+";");
 		out.println(nodes.get(NodeId.newTypeId(Key.get(PlansScoring.class))).getIdentifier()+";");
-		out.println(nodes.get(NodeId.newTypeId(Key.get(TerminationCriterion.class))).getIdentifier()+";");
 		out.println(nodes.get(NodeId.newTypeId(Key.get(PrepareForSim.class))).getIdentifier()+";");
 		out.println(nodes.get(NodeId.newTypeId(Key.get(PlansReplanning.class))).getIdentifier()+";");
+		out.println("}");
 
-
+		out.println("{");
+		out.println("rank=same;");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(RoutingModule.class, Names.named("car")))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(TravelTime.class, Names.named("car")))).getIdentifier()+";");
+		out.println(nodes.get(NodeId.newTypeId(Key.get(TravelDisutilityFactory.class, Names.named("car")))).getIdentifier()+";");
 		out.println("}");
 
 		finish();

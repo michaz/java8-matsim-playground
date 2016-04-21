@@ -108,18 +108,22 @@ truths.each { truth ->
             task ("histogram_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
                 def txt = file("output/berlin/$truth/travel-distance-histo_" + usage + "_" + alternative+ ".txt")
                 def pdf = file("output/berlin/$truth/travel-distance-histo_" + usage + "_" + alternative+ ".pdf")
+                def png = file("output/berlin/$truth/travel-distance-histo_" + usage + "_" + alternative+ ".png")
                 inputs.dir baseRun
                 inputs.dir run
                 outputs.file txt
                 outputs.file pdf
-                commandLine Rscript, 'histogram.R', baseRun.getPath(), run.getPath(), txt.getPath(), pdf.getPath()
+                outputs.file png
+                commandLine Rscript, 'histogram.R', baseRun.getPath(), run.getPath(), txt.getPath(), pdf.getPath(), png.getPath()
             }
             task ("en-route_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
                 def pdf = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route.pdf")
+                def png = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route.png")
                 inputs.dir baseRun
                 inputs.dir run
                 outputs.file pdf
-                commandLine Rscript, 'en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath()
+                outputs.file png
+                commandLine Rscript, 'en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath(), png.getPath()
             }
         }
     }

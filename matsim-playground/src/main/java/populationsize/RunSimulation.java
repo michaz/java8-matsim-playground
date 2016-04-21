@@ -58,7 +58,15 @@ public class RunSimulation {
 
 		RunResource baseRun = new RunResource(baseRunDir);
 
-		final double cadytsWeight = 0.0;
+		final double cadytsWeightLinks;
+		final double cadytsWeightHistogram;
+		if (alternative.endsWith("with-histogram")) {
+			cadytsWeightLinks = 0.0;
+			cadytsWeightHistogram = 100.0;
+		} else {
+			cadytsWeightLinks = 100.0;
+			cadytsWeightHistogram = 0.0;
+		}
 		int lastIteration = 100;
 		double cloneFactor;
 		if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
@@ -179,7 +187,7 @@ public class RunSimulation {
 						PlanBuilder<HistogramBin> planBuilder = new PlanBuilder<>();
 						planBuilder.addTurn(HistogramBin.values()[(int) (Math.min(v, 260000) / 20000.0)], 0);
 						double offset = calibrator.calcLinearPlanEffect(planBuilder.getResult());
-						afterMobsimEvent.getServices().getEvents().processEvent(new PersonMoneyEvent(Time.UNDEFINED_TIME, personId, 100.0 * offset));
+						afterMobsimEvent.getServices().getEvents().processEvent(new PersonMoneyEvent(Time.UNDEFINED_TIME, personId, cadytsWeightHistogram * offset));
 					});
 				});
 				if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
@@ -196,7 +204,7 @@ public class RunSimulation {
 			});
 		}
 		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
-		factory.setCadytsweight(cadytsWeight);
+		factory.setCadytsweight(cadytsWeightLinks);
 		controler.setScoringFunctionFactory(factory);
 		controler.run();
 	}

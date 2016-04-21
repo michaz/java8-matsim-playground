@@ -3,6 +3,7 @@ baseRunPath <- args[1]
 runPath <- args[2]
 outputTxt <- args[3]
 outputPdf <- args[4]
+outputPng <- args[5]
 
 library("ggplot2")
 truth <- read.table(paste0(baseRunPath,"/ITERS/it.0/perso-dist-histo.txt",sep=""), header=TRUE)
@@ -21,3 +22,4 @@ ggplot(subset(all, distance < 200000), aes(x=distance/1000, fill=case)) +
     theme(legend.position="bottom")
 write.table(all, file=outputTxt, row.names=FALSE)
 ggsave(outputPdf)
+ggsave(outputPng)

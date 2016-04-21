@@ -160,6 +160,27 @@ public class JGraphTGrapher extends AbstractInjectorGrapher {
 				if (ExperiencedPlansService.class.equals(node.getId().getKey().getTypeLiteral().getRawType())) {
 					return true;
 				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("ExperiencedPlansServiceImpl")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("ControlerListener")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("EventsToActivities")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("EventsToLegs")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("LeastCostPathCalculatorFactory")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("MainModeIdentifier")) {
+					return true;
+				}
+				if (node.getId().getKey().getTypeLiteral().toString().contains("TerminationCriterion")) {
+					return true;
+				}
 				if (node.getId().getKey().getTypeLiteral().equals(new TypeLiteral<Set<MobsimListener>>(){})) {
 					return true;
 				}

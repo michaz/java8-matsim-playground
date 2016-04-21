@@ -132,8 +132,8 @@ public class TrajectoryReEnricherModule extends AbstractModule {
 					Collections.shuffle(denseTraces);
 					distanceCalculator.sortDenseByProximityToSparse(newTrace, denseTraces.subList(0, (int) (denseTraces.size() * SAMPLE)));
 					List<Sighting> wellFittingDenseTrace = denseTraces.get(0).getValue();
-	//                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckAll();
-					new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
+	                new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckAll();
+//					new TrajectoryEnricher(distanceCalculator, newTrace, wellFittingDenseTrace).drehStreckSome();
 					newPlan = PopulationFromSightings.createPlanWithRandomEndTimesInPermittedWindow(scenario, zones, newTrace);
 				}
 				plan.getPlanElements().clear();
