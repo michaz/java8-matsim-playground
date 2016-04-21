@@ -16,7 +16,6 @@ import org.matsim.core.mobsim.qsim.QSim;
 import org.matsim.core.mobsim.qsim.interfaces.DepartureHandler;
 import org.matsim.core.mobsim.qsim.interfaces.MobsimEngine;
 import org.matsim.core.utils.collections.Tuple;
-import org.matsim.vis.otfvis.OTFVisConfigGroup;
 import org.matsim.vis.snapshotwriters.*;
 
 import java.util.*;
@@ -173,7 +172,6 @@ public class BushwhackingEngine implements DepartureHandler, MobsimEngine, VisDa
 
 	@Override
 	public void onPrepareSim() {
-		this.doVisualizeTeleportedAgents = ConfigUtils.addOrGetModule(((QSim) internalInterface.getMobsim()).getScenario().getConfig(), OTFVisConfigGroup.GROUP_NAME, OTFVisConfigGroup.class).isShowTeleportedAgents();
 		for (MobsimAgent agent : ((VisMobsim) internalInterface.getMobsim()).getAgents()) {
 			agents.put(agent.getId(), agent);
 		}

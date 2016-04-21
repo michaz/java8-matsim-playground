@@ -22,9 +22,9 @@
 
 package stratum;
 
+import cdr.ZoneTracker;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Link;
-import playground.mzilske.cdr.ZoneTracker;
 
 class MyLinkToZoneResolver implements ZoneTracker.LinkToZoneResolver {
     @Override

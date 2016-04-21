@@ -181,7 +181,7 @@ task trajectorySimilarityFigures(type: JavaExec, dependsOn: 'uncongested3_worker
     def output = file('output/berlin/uncongested3/alternatives/worker-heavy-users/trajectory-similarity-figures')
     classpath = configurations.wurst
     main = 'fx.RunTrajectorySimilarityFigures'
-    args '--baseRunDir='+baseRun.getPath(), '--sightingsDir='+sightingsDir.getPath(), '--output='+output.getPath(), '--sparse=17167184', '--dense=16159661'
+    args '--baseRunDir='+baseRun.getPath(), '--sightingsDir='+sightingsDir.getPath(), '--output='+output.getPath(), '--sparse=11161851', '--dense=16203334'
     inputs.dir baseRun
     inputs.dir sightingsDir
     outputs.dir output

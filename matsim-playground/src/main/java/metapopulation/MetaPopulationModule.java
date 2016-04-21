@@ -32,6 +32,5 @@ public class MetaPopulationModule extends AbstractModule {
         Multibinder<ControlerListener> controlerListenerBinder = Multibinder.newSetBinder(binder(), ControlerListener.class);
         controlerListenerBinder.addBinding().to(MetaPopulationReplanningControlerListener.class);
         controlerListenerBinder.addBinding().to(MetaPopulationScoringControlerListener.class);
-        controlerListenerBinder.addBinding().toProvider(MetaPopulationStatsControlerListenerProvider.class);
     }
 }

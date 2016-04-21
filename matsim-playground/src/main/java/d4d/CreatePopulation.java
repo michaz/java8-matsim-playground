@@ -19,6 +19,7 @@
 
 package d4d;
 
+import cdr.*;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -44,7 +45,6 @@ import org.matsim.core.utils.io.tabularFileParser.TabularFileParserConfig;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import playground.mzilske.cdr.*;
 
 import java.io.FileNotFoundException;
 import java.util.*;

@@ -10,7 +10,6 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 import org.matsim.core.config.groups.PlansCalcRouteConfigGroup.ModeRoutingParams;
 import org.matsim.core.network.NetworkImpl;
 import org.matsim.core.network.NetworkUtils;
-import org.matsim.core.population.routes.ModeRouteFactory;
 import org.matsim.core.router.*;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -24,9 +23,7 @@ import java.util.Map;
 public class BushwhackingRoutingModule implements RoutingModule {
 
 	private NetworkImpl network;
-	
-	ModeRouteFactory mrf = new ModeRouteFactory();
-	
+
 	private RoutingModule teleportationLegRouter;
 
 	private RoutingModule networkLegRouter;

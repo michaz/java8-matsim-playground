@@ -22,6 +22,10 @@
 
 package stratum;
 
+import cdr.CompareMain;
+import cdr.PopulationFromSightings;
+import cdr.Sightings;
+import cdr.ZoneTracker;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -34,10 +38,6 @@ import org.matsim.core.config.groups.StrategyConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.replanning.selectors.RandomPlanSelector;
 import org.matsim.core.scenario.ScenarioUtils.ScenarioBuilder;
-import playground.mzilske.cdr.CompareMain;
-import playground.mzilske.cdr.PopulationFromSightings;
-import playground.mzilske.cdr.Sightings;
-import playground.mzilske.cdr.ZoneTracker;
 
 import javax.inject.Provider;
 

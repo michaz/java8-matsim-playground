@@ -5,7 +5,6 @@ import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.PopulationFactory;
-import org.matsim.core.population.routes.ModeRouteFactory;
 import org.matsim.core.router.*;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -15,10 +14,6 @@ import java.util.List;
 
 public class NetworkRoutingModule implements RoutingModule {
 	
-
-	ModeRouteFactory mrf = new ModeRouteFactory();
-	
-
 	private RoutingModule networkLegRouter;
 
 	public NetworkRoutingModule(PopulationFactory pf, Network network, TravelTime ttc) {

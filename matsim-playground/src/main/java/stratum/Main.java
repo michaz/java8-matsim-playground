@@ -22,6 +22,10 @@
 
 package stratum;
 
+import cadyts.CadytsModule;
+import cdr.*;
+import clones.ClonesConfigGroup;
+import clones.ClonesModule;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
@@ -33,10 +37,6 @@ import org.matsim.core.controler.ControlerDefaultsModule;
 import org.matsim.counts.Count;
 import org.matsim.counts.Counts;
 import org.matsim.counts.Volume;
-import playground.mzilske.cadyts.CadytsModule;
-import playground.mzilske.cdr.*;
-import playground.mzilske.clones.ClonesConfigGroup;
-import playground.mzilske.clones.ClonesModule;
 
 import java.util.Arrays;
 import java.util.List;

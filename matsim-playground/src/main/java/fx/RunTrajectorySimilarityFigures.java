@@ -70,6 +70,10 @@ public class RunTrajectorySimilarityFigures extends Application {
 
 		TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, sparse.get(SPARSE_ID), dense.get(DENSE_ID));
 		trajectoryEnrichmentApp.enrich();
+
+		chart.sparse.setAll(trajectoryEnrichmentApp.enriched);
+		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace.png"));
+
 		TrajectoryChart beforeChart = trajectoryEnrichmentApp.createChart(true);
 		TrajectoryChart afterChart = trajectoryEnrichmentApp.createChart(false);
 		primaryStage.setScene(new Scene(beforeChart));
