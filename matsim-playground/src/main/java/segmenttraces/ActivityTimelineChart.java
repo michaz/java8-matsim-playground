@@ -135,7 +135,7 @@ public class ActivityTimelineChart {
 		ReplayEvents replayEvents = injector.getInstance(ReplayEvents.class);
 		replayEvents.playEventsFile(iteration.getEventsFileName(), 0);
 		ExperiencedPlansService instance = injector.getInstance(ExperiencedPlansService.class);
-		return instance.getAgentRecords();
+		return new TreeMap<>(instance.getAgentRecords());
 	}
 
 }

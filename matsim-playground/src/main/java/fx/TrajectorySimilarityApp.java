@@ -57,9 +57,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 
-/**
- * A simulated stock line chart.
- */
 public class TrajectorySimilarityApp extends Application {
 
     private DistanceCalculator distanceCalculator;

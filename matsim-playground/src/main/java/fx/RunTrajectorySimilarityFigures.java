@@ -39,40 +39,38 @@ public class RunTrajectorySimilarityFigures extends Application {
 
 		RunResource baseRun = new RunResource(getParameters().getNamed().get("baseRunDir"));
 
-		final Map<Id, List<Sighting>> dense = new HashMap<>();
-		final Map<Id, List<Sighting>> sparse = new HashMap<>();
-
-		for (Map.Entry<Id, List<Sighting>> entry : sightings.getSightingsPerPerson().entrySet()) {
-			if (entry.getValue().size() > 20) {
-				dense.put(entry.getKey(), entry.getValue());
-			} else {
-				sparse.put(entry.getKey(), entry.getValue());
-			}
-		}
+		List<Sighting> sparseTrace = sightings.getSightingsPerPerson().get(SPARSE_ID);
+		List<Sighting> denseTrace = sightings.getSightingsPerPerson().get(DENSE_ID);
 
 		DistanceCalculator distanceCalculator = new DistanceCalculator(baseRun.getConfigAndNetwork().getNetwork());
-		DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
-		chart.sparse.setAll(sparse.get(SPARSE_ID));
-		chart.dense.setAll(dense.get(DENSE_ID));
-		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", SPARSE_ID.toString(), (int) distanceCalculator.distance(sparse.get(SPARSE_ID))));
-		chart.setDenseVisible(false);
+		DistanceFromHomeChart distanceFromHomeChart = new DistanceFromHomeChart(distanceCalculator);
+		distanceFromHomeChart.sparse.setAll(sparseTrace);
+		distanceFromHomeChart.dense.setAll(denseTrace);
+		distanceFromHomeChart.chart.titleProperty().set(String.format("Individual %s, dist %d", SPARSE_ID.toString(), (int) distanceCalculator.distance(sparseTrace)));
+		distanceFromHomeChart.setDenseVisible(false);
 
-		Scene scene = new Scene(chart.chart);
+		Scene scene = new Scene(distanceFromHomeChart.chart);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-trace.png"));
 
-		chart.chart.titleProperty().set(String.format("Individual %s, dist %d", DENSE_ID.toString(), (int) distanceCalculator.distance(dense.get(DENSE_ID))));
-		chart.setDenseVisible(true);
-		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-and-dense-trace.png"));
+		distanceFromHomeChart.chart.titleProperty().set(String.format("Individual %s, dist %d", DENSE_ID.toString(), (int) distanceCalculator.distance(denseTrace)));
+		distanceFromHomeChart.setDenseVisible(true);
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-and-dense-trace.png"));
 
-		TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, sparse.get(SPARSE_ID), dense.get(DENSE_ID));
+		TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, sparseTrace, denseTrace);
 		trajectoryEnrichmentApp.enrich();
 
-		chart.sparse.setAll(trajectoryEnrichmentApp.enriched);
-		ImageIO.write(SwingFXUtils.fromFXImage(chart.chart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace.png"));
+		distanceFromHomeChart.sparse.setAll(trajectoryEnrichmentApp.enriched);
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace.png"));
+
+		CumulativeDistanceChart cumulativeDistanceChart = new CumulativeDistanceChart(distanceCalculator);
+		cumulativeDistanceChart.sparse.setAll(trajectoryEnrichmentApp.enriched);
+		cumulativeDistanceChart.dense.setAll(denseTrace);
+		primaryStage.setScene(new Scene(cumulativeDistanceChart.chart));
+		ImageIO.write(SwingFXUtils.fromFXImage(cumulativeDistanceChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace-cumulative.png"));
 
 		TrajectoryChart beforeChart = trajectoryEnrichmentApp.createChart(true);
 		TrajectoryChart afterChart = trajectoryEnrichmentApp.createChart(false);

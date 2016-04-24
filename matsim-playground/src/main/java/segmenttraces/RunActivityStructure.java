@@ -16,6 +16,7 @@ import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Plan;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.io.UncheckedIOException;
 import populationsize.*;
@@ -31,6 +32,7 @@ import static segmenttraces.ActivityTimelineChart.*;
 public class RunActivityStructure {
 
 	public static void main(String[] args) {
+		Random random = MatsimRandom.getRandom();
 		String baseRunDir = args[0];
 		String sightingsDir = args[1];
 		String runDir = args[2];
@@ -43,14 +45,15 @@ public class RunActivityStructure {
 
 		final Sightings sightings = new SightingsImpl();
 		new SightingsReader(sightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
-		Collection<Id<Person>> agents = getAgentIds((Set<Id<Person>>) (Set) sightings.getSightingsPerPerson().keySet());
-		sightings.getSightingsPerPerson().keySet().retainAll(agents);
 
 		Map<Id<Person>, Plan> population = getExperiencedPlans(iteration, network);
 		Map<Id<Person>, Plan> originalPopulation = getExperiencedPlans(baseRun.getLastIteration(), network);
 		LinkedHashMap<Id, List<Sighting>> sortedSightings = new LinkedHashMap<>();
 		LinkedHashMap<Id<Person>, Plan> sortedPopulation = new LinkedHashMap<>();
 		LinkedHashMap<Id<Person>, Plan> sortedOriginalPopulation = new LinkedHashMap<>();
+		Collection<Id<Person>> agents = getAgentIds((Set<Id<Person>>) (Set) population.keySet(), random);
+		sightings.getSightingsPerPerson().keySet().retainAll(agents);
+
 		for (Id<Person> personId : agents) {
 			sortedSightings.put(personId, sightings.getSightingsPerPerson().get(personId));
 			sortedPopulation.put(personId, population.get(personId));
@@ -86,9 +89,9 @@ public class RunActivityStructure {
 
 	}
 
-	static Collection<Id<Person>> getAgentIds(Set<Id<Person>> ids) {
+	static Collection<Id<Person>> getAgentIds(Set<Id<Person>> ids, Random random) {
 		List<Id> idList = new ArrayList<>(ids);
-		Collections.shuffle(idList);
+		Collections.shuffle(idList, random);
 		Collection<Id<Person>> agents = new ArrayList<>();
 		agents.add(idList.get(0));
 		agents.add(idList.get(1));
