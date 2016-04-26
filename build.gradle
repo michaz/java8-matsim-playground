@@ -204,13 +204,28 @@ task activityStructure(type: JavaExec, dependsOn: 'simulate_uncongested3_only-he
 
 task activityStructureDistance(type: JavaExec, dependsOn: 'simulate_uncongested3_only-heavy-users_segmentation-only') {
     def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/only-heavy-users/sightings')
     def run = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run')
     def png = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/activity-structure-distance.png')
     classpath = configurations.wurst
     main = 'segmenttraces.RunActivityStructureDistance'
-    args '--baseRunDir='+baseRun.getPath(), '--runDir='+run.getPath(), '--output='+png.getPath()
+    args '--baseRunDir='+baseRun.getPath(), '--runDir='+run.getPath(), '--sightingsDir='+sightingsDir.getPath(), '--output='+png.getPath(), '--headless=true'
     inputs.dir baseRun
     inputs.dir run
     outputs.file png
 }
+
+task activityStructureDistanceApp(type: JavaExec, dependsOn: 'simulate_uncongested3_only-heavy-users_segmentation-only') {
+    def baseRun = file('output/berlin/uncongested3/output-berlin')
+    def sightingsDir = file('output/berlin/uncongested3/alternatives/only-heavy-users/sightings')
+    def run = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/run')
+    def png = file('output/berlin/uncongested3/alternatives/only-heavy-users/alternatives/segmentation-only/activity-structure-distance.png')
+    classpath = configurations.wurst
+    main = 'segmenttraces.RunActivityStructureDistance'
+    args '--baseRunDir='+baseRun.getPath(), '--runDir='+run.getPath(), '--sightingsDir='+sightingsDir.getPath(), '--output='+png.getPath()
+    inputs.dir baseRun
+    inputs.dir run
+    outputs.file png
+}
+
 

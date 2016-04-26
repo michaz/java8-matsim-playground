@@ -154,13 +154,13 @@ public class TrajectorySimilarityApp extends Application {
                         if (!empty) {
                             DistanceFromHomeChart chart = new DistanceFromHomeChart(distanceCalculator);
                             chart.sparse.setAll(item.getValue());
-                            chart.chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
+                            chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
                             chart.markerTime.addListener((observable, oldValue, newValue) -> {
                                 if (newValue != null) {
                                     markerTime.set(newValue.doubleValue());
                                 }
                             });
-                            setGraphic(chart.chart);
+                            setGraphic(chart);
                         }
                     }
                 };
@@ -196,14 +196,14 @@ public class TrajectorySimilarityApp extends Application {
                                     }
                                 }
                             });
-                            chart.chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
+                            chart.titleProperty().set(String.format("Individual %s, dist %d", item.getKey().toString(), (int) distanceCalculator.distance(item.getValue())));
                             chart.dense.setAll(item.getValue());
                             chart.markerTime.addListener((observable, oldValue, newValue) -> {
                                 if (newValue != null) {
                                     markerTime.set(newValue.doubleValue());
                                 }
                             });
-                            setGraphic(chart.chart);
+                            setGraphic(chart);
                         }
                     }
                 };

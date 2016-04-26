@@ -193,8 +193,8 @@ public class PopulationFromSightings {
                     double correctedTravelTime = travelTime + linkTravelTime.getLinkTravelTime(scenario.getNetwork().getLinks().get(activity.getLinkId()), routerLeg.getDepartureTime() + travelTime, null, null);
                     double latestDepartureTime = sighting.getTime() - correctedTravelTime;
                     double earliestDepartureTime = previousActivity.getEndTime();
-                    double schlupf = latestDepartureTime - earliestDepartureTime;
-                    double departureTime = earliestDepartureTime + (Math.random() * schlupf);
+                    double slack = latestDepartureTime - earliestDepartureTime;
+                    double departureTime = earliestDepartureTime + (Math.random() * slack);
                     previousActivity.setEndTime(departureTime);
                     activity.setStartTime(departureTime + correctedTravelTime);
                 } else {
@@ -222,8 +222,8 @@ public class PopulationFromSightings {
         while (i.hasNext()) {
             Activity act = (Activity) i.next();
             if (i.previousIndex() != 0 && i.hasNext()) {
-                double schlupf = act.getEndTime() - act.getStartTime();
-                if ((schlupf / 60.0) < 1.0) {
+                double slack = act.getEndTime() - act.getStartTime();
+                if ((slack / 60.0) < 1.0) {
                     i.remove();
                 }
             }

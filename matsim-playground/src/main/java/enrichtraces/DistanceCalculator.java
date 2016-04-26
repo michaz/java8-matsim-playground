@@ -65,7 +65,8 @@ public class DistanceCalculator {
         return sightings.stream()
                 .map(sighting -> new BetweenSightings(sighting, sighting, 0.0))
                 .reduce((a, b) -> new BetweenSightings(a.a, b.b, a.dist + b.dist + distance(a.b, b.a)))
-                .get().dist;
+                .map(bs -> bs.dist)
+                .orElse(0.0);
     }
 
     public String locateInCell(Coord newCoord) {

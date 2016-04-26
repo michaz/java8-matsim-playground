@@ -46,25 +46,25 @@ public class RunTrajectorySimilarityFigures extends Application {
 		DistanceFromHomeChart distanceFromHomeChart = new DistanceFromHomeChart(distanceCalculator);
 		distanceFromHomeChart.sparse.setAll(sparseTrace);
 		distanceFromHomeChart.dense.setAll(denseTrace);
-		distanceFromHomeChart.chart.titleProperty().set(String.format("Individual %s, dist %d", SPARSE_ID.toString(), (int) distanceCalculator.distance(sparseTrace)));
+		distanceFromHomeChart.titleProperty().set(String.format("Individual %s, dist %d", SPARSE_ID.toString(), (int) distanceCalculator.distance(sparseTrace)));
 		distanceFromHomeChart.setDenseVisible(false);
 
-		Scene scene = new Scene(distanceFromHomeChart.chart);
+		Scene scene = new Scene(distanceFromHomeChart);
 
 		primaryStage.setScene(scene);
 		primaryStage.show();
 
-		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-trace.png"));
 
-		distanceFromHomeChart.chart.titleProperty().set(String.format("Individual %s, dist %d", DENSE_ID.toString(), (int) distanceCalculator.distance(denseTrace)));
+		distanceFromHomeChart.titleProperty().set(String.format("Individual %s, dist %d", DENSE_ID.toString(), (int) distanceCalculator.distance(denseTrace)));
 		distanceFromHomeChart.setDenseVisible(true);
-		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-and-dense-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.snapshot(null, null), null), "png", new File(outputDir+"/sparse-and-dense-trace.png"));
 
 		TrajectoryEnrichmentApp trajectoryEnrichmentApp = new TrajectoryEnrichmentApp(distanceCalculator, sparseTrace, denseTrace);
 		trajectoryEnrichmentApp.enrich();
 
 		distanceFromHomeChart.sparse.setAll(trajectoryEnrichmentApp.enriched);
-		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.chart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace.png"));
+		ImageIO.write(SwingFXUtils.fromFXImage(distanceFromHomeChart.snapshot(null, null), null), "png", new File(outputDir+"/enriched-and-dense-trace.png"));
 
 		CumulativeDistanceChart cumulativeDistanceChart = new CumulativeDistanceChart(distanceCalculator);
 		cumulativeDistanceChart.sparse.setAll(trajectoryEnrichmentApp.enriched);

@@ -1,6 +1,13 @@
+.chart {
+    -fx-create-symbols: false;
+}
+
 .chart-series-line {
     -fx-stroke-width: 2px;
     -fx-effect: null;
+    -fx-stroke-dash-array: 12 2 4 2;
+    -fx-stroke-dash-offset: 6;
+    -fx-stroke-line-cap: butt;
 }
 
 /*original trace, incorrectly called "sparse" in code*/

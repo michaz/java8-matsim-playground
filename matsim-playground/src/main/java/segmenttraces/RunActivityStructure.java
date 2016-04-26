@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static segmenttraces.ActivityTimelineChart.*;
 
@@ -90,13 +91,9 @@ public class RunActivityStructure {
 	}
 
 	static Collection<Id<Person>> getAgentIds(Set<Id<Person>> ids, Random random) {
-		List<Id> idList = new ArrayList<>(ids);
+		List<Id<Person>> idList = new ArrayList<>(ids);
 		Collections.shuffle(idList, random);
-		Collection<Id<Person>> agents = new ArrayList<>();
-		agents.add(idList.get(0));
-		agents.add(idList.get(1));
-		agents.add(idList.get(2));
-		return agents;
+		return idList.stream().limit(5).collect(Collectors.toList());
 	}
 
 }

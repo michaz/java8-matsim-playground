@@ -118,7 +118,7 @@ public class TrajectoryEnrichmentApp implements Runnable {
         cumulativeDistanceChart.dense.set(dense);
         BorderPane borderPane = new BorderPane();
         borderPane.setTop(cumulativeDistanceChart.chart);
-        borderPane.setBottom(distanceFromHomeChart.chart);
+        borderPane.setBottom(distanceFromHomeChart);
         return borderPane;
     }
 
