@@ -6,6 +6,7 @@
 </style>
 <body>
 <script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
 <script>
     var width = 1024;
     var height = 768;
@@ -32,17 +33,16 @@
             var y = d.attributes.getNamedItem("y").nodeValue;
             return {type: "Point", coordinates: [x, y]};
         });
-        var features = geometries.map(function (geom) {
-            return {type: "Feature", geometry: geom}
-        });
-        var featureCollection = {type: "FeatureCollection", features: features};
-        var bounds = path.bounds(featureCollection);
+        var featureCollection = {type: "GeometryCollection", geometries: geometries};
+        var topology = {type: "Topology", objects: {nodes: featureCollection}, arcs: []}
+        var nodes = topojson.feature(topology, featureCollection);
+        var bounds = path.bounds(nodes);
         var scale = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
         var translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
         zoom.scale(scale).translate(translate);
         zoom.event(svg);
         g.selectAll("path")
-                .data(features)
+                .data(nodes.features)
                 .enter().append("path")
                 .attr("d", path);
     });
