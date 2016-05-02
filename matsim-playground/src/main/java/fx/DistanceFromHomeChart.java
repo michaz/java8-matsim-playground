@@ -75,8 +75,6 @@ public class DistanceFromHomeChart extends LineChart<Number, Number> {
         }
     }
 
-    private ObservableList<Data<Number, Number>> horizontalMarkers;
-    private ObservableList<Data<Number, Number>> verticalMarkers;
     private ObservableList<ActivityData> activities;
 
     final DoubleProperty markerTime = new SimpleDoubleProperty();
@@ -92,10 +90,6 @@ public class DistanceFromHomeChart extends LineChart<Number, Number> {
     public DistanceFromHomeChart(DistanceCalculator distanceCalculator) {
         super(new NumberAxis(0, 24, 3), new NumberAxis());
 
-        horizontalMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.YValueProperty()});
-        horizontalMarkers.addListener((InvalidationListener) observable -> layoutPlotChildren());
-        verticalMarkers = FXCollections.observableArrayList(data -> new Observable[] {data.XValueProperty()});
-        verticalMarkers.addListener((InvalidationListener)observable -> layoutPlotChildren());
         activities = FXCollections.observableArrayList(data -> new Observable[] {data.sightingProperty()});
         activities.addListener((InvalidationListener)observable -> layoutPlotChildren());
 
@@ -147,36 +141,7 @@ public class DistanceFromHomeChart extends LineChart<Number, Number> {
     void setDenseVisible(boolean denseVisible) {
         this.denseVisible = denseVisible;
         denseDataSeries.getNode().setVisible(this.denseVisible);
-//      denseDataSeries.dataProperty().addListener(observable -> {
         denseDataSeries.getData().forEach(data -> data.getNode().setVisible(denseVisible));
-//      });
-    }
-
-    public void addHorizontalValueMarker(Data<Number, Number> marker) {
-        Objects.requireNonNull(marker, "the marker must not be null");
-        if (horizontalMarkers.contains(marker)) return;
-        Line line = new Line();
-        marker.setNode(line );
-        getPlotChildren().add(line);
-        horizontalMarkers.add(marker);
-    }
-
-    public void removeHorizontalValueMarker(Data<Number, Number> marker) {
-        Objects.requireNonNull(marker, "the marker must not be null");
-        if (marker.getNode() != null) {
-            getPlotChildren().remove(marker.getNode());
-            marker.setNode(null);
-        }
-        horizontalMarkers.remove(marker);
-    }
-
-    public void addVerticalValueMarker(Data<Number, Number> marker) {
-        Objects.requireNonNull(marker, "the marker must not be null");
-        if (verticalMarkers.contains(marker)) return;
-        Line line = new Line();
-        marker.setNode(line );
-        getPlotChildren().add(line);
-        verticalMarkers.add(marker);
     }
 
     public void addActivity(ActivityData activityData) {
@@ -187,35 +152,9 @@ public class DistanceFromHomeChart extends LineChart<Number, Number> {
     }
 
 
-    public void removeVerticalValueMarker(Data<Number, Number> marker) {
-        Objects.requireNonNull(marker, "the marker must not be null");
-        if (marker.getNode() != null) {
-            getPlotChildren().remove(marker.getNode());
-            marker.setNode(null);
-        }
-        verticalMarkers.remove(marker);
-    }
-
-
     @Override
     protected void layoutPlotChildren() {
         super.layoutPlotChildren();
-        for (Data<Number, Number> horizontalMarker : horizontalMarkers) {
-            Line line = (Line) horizontalMarker.getNode();
-            line.setStartX(0);
-            line.setEndX(getBoundsInLocal().getWidth());
-            line.setStartY(getYAxis().getDisplayPosition(horizontalMarker.getYValue()) + 0.5); // 0.5 for crispness
-            line.setEndY(line.getStartY());
-            line.toFront();
-        }
-        for (Data<Number, Number> verticalMarker : verticalMarkers) {
-            Line line = (Line) verticalMarker.getNode();
-            line.setStartX(getXAxis().getDisplayPosition(verticalMarker.getXValue()) + 0.5);  // 0.5 for crispness
-            line.setEndX(line.getStartX());
-            line.setStartY(0d);
-            line.setEndY(getBoundsInLocal().getHeight());
-            line.toFront();
-        }
         for (int i = 0; i < activities.size(); i++) {
             ActivityData activity = activities.get(i);
             Group group = activity.getNode();
@@ -225,8 +164,8 @@ public class DistanceFromHomeChart extends LineChart<Number, Number> {
             line.setStartX(getXAxis().getDisplayPosition(timeInHours) + 0.5);  // 0.5 for crispness
             line.setEndX(line.getStartX());
             double distanceFromHome = distanceCalculator.distance(sparse.get().get(0), activity.sighting.get());
-            line.setStartY(getYAxis().getDisplayPosition(distanceFromHome)-2.0);
-            line.setEndY(getYAxis().getDisplayPosition(distanceFromHome)+2.0);
+            line.setStartY(getYAxis().getDisplayPosition(distanceFromHome)-5.0);
+            line.setEndY(getYAxis().getDisplayPosition(distanceFromHome)+5.0);
             group.getChildren().add(line);
             if (i > 0) {
                 ActivityData previousActivity = activities.get(i-1);

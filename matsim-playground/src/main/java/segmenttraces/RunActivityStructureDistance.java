@@ -85,8 +85,17 @@ public class RunActivityStructureDistance extends Application {
 		Parent node;
 		if (isHeadless) {
 			VBox vBox = new VBox();
-			for (Id<Person> personId : RunActivityStructure.getAgentIds(population.keySet(), random)) {
-				vBox.getChildren().add(createChart(personId, distanceCalculator, originalPopulation, population, sightings, tripRouter));
+			{
+				DistanceFromHomeChart chart = createChart(Id.createPersonId(11229181), distanceCalculator, originalPopulation, population, sightings, tripRouter);
+				((ValueAxis) chart.getXAxis()).setLowerBound(14.0);
+				((ValueAxis) chart.getXAxis()).setUpperBound(20.0);
+				vBox.getChildren().add(chart);
+			}
+			{
+				DistanceFromHomeChart chart = createChart(Id.createPersonId(11123641), distanceCalculator, originalPopulation, population, sightings, tripRouter);
+				((ValueAxis) chart.getXAxis()).setLowerBound(10.0);
+				((ValueAxis) chart.getXAxis()).setUpperBound(21.0);
+				vBox.getChildren().add(chart);
 			}
 			node = vBox;
 		} else {
@@ -137,7 +146,7 @@ public class RunActivityStructureDistance extends Application {
 				(int) distanceCalculator.distance(plan2sightings(originalPopulation.get(personId), personId)),
 				(int) distanceCalculator.distance(plan2sightings(population.get(personId), personId))));
 		((ValueAxis) chart.getXAxis()).setLowerBound(9.0);
-//		chart.setPrefSize(1000, 330);
+		chart.setPrefSize(1000, 330);
 		return chart;
 	}
 
