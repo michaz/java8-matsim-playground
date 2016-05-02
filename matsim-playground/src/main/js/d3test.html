@@ -14,41 +14,38 @@
             .attr("height", height);
 
     var g = svg.append("g");
+    // zoom and pan
+    var zoom = d3.behavior.zoom()
+            .on("zoom", function () {
+                g.attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
+            });
+    svg.call(zoom)
 
-    d3.xml("/java8-matsim-playground/output/berlin/uncongested3/output-berlin/output_network.xml", "application/xml", function(error, xml) {
-        var projection = d3.geo.projection(function(x, y) { return [x, y];}).precision(0).scale(1).translate([0, 0]);
-        var geometries = Array.from(xml.documentElement.getElementsByTagName("node")).map(function(d) {
+
+    d3.xml("/java8-matsim-playground/output/berlin/uncongested3/output-berlin/output_network.xml", "application/xml", function (error, xml) {
+        var projection = d3.geo.projection(function (x, y) {
+            return [x, y];
+        }).precision(0).scale(1).translate([0, 0]);
+        var path = d3.geo.path().projection(projection);
+        var geometries = Array.from(xml.documentElement.getElementsByTagName("node")).map(function (d) {
             var x = d.attributes.getNamedItem("x").nodeValue;
             var y = d.attributes.getNamedItem("y").nodeValue;
-            return {type: "Point", coordinates: [x,y]};
+            return {type: "Point", coordinates: [x, y]};
         });
         var features = geometries.map(function (geom) {
             return {type: "Feature", geometry: geom}
         });
         var featureCollection = {type: "FeatureCollection", features: features};
-        var path = d3.geo.path().projection(projection);
-        var bounds = path.bounds(featureCollection),
-                scale  = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width,
-                                (bounds[1][1] - bounds[0][1]) / height),
-                transl = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2,
-                    (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
-        projection.scale(scale).translate(transl);
-        path.projection(projection);
-        g
-        .selectAll("path")
-        .data(features)
-        .enter().append("path")
-        .attr("d", path);
+        var bounds = path.bounds(featureCollection);
+        var scale = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+        var translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
+        zoom.scale(scale).translate(translate);
+        zoom.event(svg);
+        g.selectAll("path")
+                .data(features)
+                .enter().append("path")
+                .attr("d", path);
     });
-
-    // zoom and pan
-    var zoom = d3.behavior.zoom()
-            .on("zoom",function() {
-                g.attr("transform","translate("+d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-
-            });
-
-    svg.call(zoom)
 
 
 </script>
