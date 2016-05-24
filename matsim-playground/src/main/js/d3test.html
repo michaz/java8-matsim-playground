@@ -33,9 +33,9 @@
             var y = d.attributes.getNamedItem("y").nodeValue;
             return {type: "Point", coordinates: [x, y]};
         });
-        var featureCollection = {type: "GeometryCollection", geometries: geometries};
-        var topology = {type: "Topology", objects: {nodes: featureCollection}, arcs: []}
-        var nodes = topojson.feature(topology, featureCollection);
+        var geometryCollection = {type: "GeometryCollection", geometries: geometries};
+        var topology = {type: "Topology", objects: {nodes: geometryCollection}, arcs: []}
+        var nodes = topojson.feature(topology, geometryCollection);
         var bounds = path.bounds(nodes);
         var scale = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
         var translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
