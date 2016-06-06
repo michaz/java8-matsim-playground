@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.js"></script>
+<script src="//d3js.org/topojson.v1.js"></script>
+<script>
+    var width = 1024;
+    var height = 768;
+    // zoom and pan
+
+    d3.xml("/java8-matsim-playground/output/berlin/uncongested3/output-berlin/output_plans.xml", "application/xml", function (error, xml) {
+
+
+        var acts = Array.from(xml.documentElement.getElementsByTagName("act")).map(function (d, i) {
+            var x = d.attributes.getNamedItem("x").nodeValue;
+            var y = d.attributes.getNamedItem("y").nodeValue;
+            return {type: "Point", coordinates: [+x, -y]};
+        });
+
+        var canv = function () {
+
+            var canvas = d3.select("body").append("canvas")
+                    .attr("width", width)
+                    .attr("height", height);
+            var context = canvas.node().getContext("2d");
+
+            var path = d3.geo.path().projection(null).context(context);
+
+            var bounds = path.bounds({type: "GeometryCollection", geometries: acts});
+
+            var scale = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+            var translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
+            var zoom = d3.behavior.zoom()
+                    .on("zoom", function () {
+                        context.save();
+                        context.clearRect(0, 0, width, height);
+                        context.translate(d3.event.translate[0], d3.event.translate[1]);
+                        context.scale(d3.event.scale, d3.event.scale);
+                        context.beginPath();
+                        path({type: "GeometryCollection", geometries: acts});
+                        context.stroke();
+                        context.closePath();
+                        context.restore();
+                    });
+            canvas.call(zoom);
+            zoom.scale(scale).translate(translate);
+            zoom.event(canvas);
+        };
+        var svg = function () {
+            var path = d3.geo.path().projection(null).pointRadius(50);
+
+            var bounds = path.bounds({type: "GeometryCollection", geometries: acts});
+
+            var svg = d3.select("body").append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+
+            var g = svg.append("g");
+            // zoom and pan
+            var zoom = d3.behavior.zoom()
+                    .on("zoom", function () {
+                        g.attr("transform", "translate(" + d3.event.translate.join(",") + ")scale(" + d3.event.scale + ")");
+                    });
+            svg.call(zoom);
+            var scale = .95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
+            var translate = [(width - scale * (bounds[1][0] + bounds[0][0])) / 2, (height - scale * (bounds[1][1] + bounds[0][1])) / 2];
+            zoom.scale(scale).translate(translate);
+            zoom.event(svg);
+            g.append("path")
+                    .datum({type: "GeometryCollection", geometries: acts})
+                    .attr("d", path)
+//                    .attr("stroke", "black")
+//                    .attr("fill", "black")
+//                    .attr("stroke-width", "1px")
+                    // Gets very slow on many elements, but gets *fast* again when I remove the stroke.
+                    // but then it zooms strangely.
+//                    .attr("vector-effect", "non-scaling-stroke");
+        };
+        canv();
+        svg();
+        var tr = d3.select("body").append("table").selectAll("tr")
+                .data(Array.from(xml.documentElement.getElementsByTagName("person")))
+                .enter().append("tr");
+        tr.append("td").html(function(d) {return d.attributes.getNamedItem("id").nodeValue;});
+        tr.append("td").html(function(d) {return d.getElementsByTagName("plan").item(0).getElementsByTagName("act").length;});
+
+    });
+</script>
