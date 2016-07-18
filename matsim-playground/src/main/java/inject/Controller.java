@@ -9,7 +9,7 @@ public class Controller {
 		controller.addTravelTime("bike", new BikeTravelTime());
 	}
 
-	public Controller(RainScoringFunctionFactory myScoringFunctionFactory, TripRouterImpl tripRouter) {
+	public Controller(RainScoringFunctionFactory myScoringFunctionFactory, TripRouter tripRouter) {
 
 	}
 

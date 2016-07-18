@@ -5,7 +5,7 @@ import org.matsim.core.scoring.ScoringFunction;
 import org.matsim.core.scoring.ScoringFunctionFactory;
 
 public class RainScoringFunctionFactory implements ScoringFunctionFactory {
-	public RainScoringFunctionFactory(TripRouterImpl tripRouter) {
+	public RainScoringFunctionFactory(TripRouter tripRouter) {
 
 	}
 

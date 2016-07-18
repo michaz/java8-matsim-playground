@@ -17,7 +17,6 @@ repositories {
 
 def sample = 0.1
 def Rscript = '/usr/local/bin/Rscript'
-def dot = 'which dot'.execute().text.trim()
 
 def truths = ['uncongested3', 'congested3']
 
@@ -130,21 +129,7 @@ truths.each { truth ->
     }
 }
 
-task guice1(type: JavaExec) {
-    def input = file('input/graphconfig.xml')
-    def output = file('output/guice1')
-    classpath = configurations.wurst
-    inputs.file input
-    outputs.dir output
-    main = 'guice.Graph'
-    args input.getPath(), 'guice.MyModule', output.getPath()
-}
-guice1 << {
-    (dot + " -Tsvg -ooutput/guice1/guice.svg output/guice1/guice.dot").execute()
-    (dot + " -Tpdf -ooutput/guice1/guice.pdf output/guice1/guice.dot").execute()
-}
-
-task guice(type: JavaExec) {
+task guiceDot (type: JavaExec) {
     def input = file('input/graphconfig.xml')
     def output = file('output/guice')
     classpath = configurations.wurst
@@ -153,9 +138,9 @@ task guice(type: JavaExec) {
     main = 'guice.Graph2'
     args input.getPath(), 'guice.MyModule', output.getPath()
 }
-guice << {
-    (dot + " -Tsvg -ooutput/guice/guice.svg output/guice/guice.dot").execute()
-    (dot + " -Tpdf -ooutput/guice/guice.pdf output/guice/guice.dot").execute()
+
+task guice (type: Exec, dependsOn: guiceDot) {
+    commandLine "dot", "-Tpdf", "-ooutput/guice/guice.pdf", "output/guice/guice.dot"
 }
 
 task legHistogramApp(type: JavaExec, dependsOn: uncongested3) {

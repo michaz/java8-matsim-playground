@@ -25,6 +25,7 @@ package berlin;
 import cdr.PersoDistHistoModule;
 import clones.ClonesModule;
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.contrib.otfvis.OTFVisLiveModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
@@ -35,6 +36,7 @@ import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
+import org.matsim.vis.otfvis.OTFVisConfigGroup;
 
 public class BerlinRunUncongested3 {
 
@@ -54,10 +56,14 @@ public class BerlinRunUncongested3 {
 		config.qsim().setStorageCapFactor(100);
 		config.qsim().setRemoveStuckVehicles(false);
 		config.planCalcScore().setWriteExperiencedPlans(true);
+		OTFVisConfigGroup otfVisConfigGroup = ConfigUtils.addOrGetModule(config, OTFVisConfigGroup.GROUP_NAME, OTFVisConfigGroup.class);
+		otfVisConfigGroup.setMapOverlayMode(true);
+
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 		scenario.getPopulation().getPersons().keySet().removeIf(id -> MatsimRandom.getRandom().nextDouble() > sample);
 
 		final Controler controller = new Controler(scenario);
+		controller.addOverridingModule(new OTFVisLiveModule());
 		controller.addOverridingModule(new PersoDistHistoModule());
 		controller.addOverridingModule(new ClonesModule());
 		controller.addControlerListener(new ShutdownListener() {
