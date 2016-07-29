@@ -340,8 +340,8 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		GraphvizNode gnode = new GraphvizNode(nodeId);
 		gnode.setStyle(NodeStyle.SOLID);
 
-		gnode.setHeaderBackgroundColor("#000000");
-		gnode.setHeaderTextColor("#ffffff");
+//		gnode.setHeaderBackgroundColor("#000000");
+//		gnode.setHeaderTextColor("#ffffff");
 		gnode.setTitle(nameFactory.getClassName(nodeId.getKey()));
 
 		if (fields) {
@@ -360,14 +360,14 @@ public class MyGrapher extends AbstractInjectorGrapher {
 		GraphvizNode gnode = new GraphvizNode(nodeId);
 		gnode.setStyle(NodeStyle.SOLID);
 
-		gnode.setHeaderBackgroundColor("#000000");
-		gnode.setHeaderTextColor("#ffffff");
+//		gnode.setHeaderBackgroundColor("#000000");
+//		gnode.setHeaderTextColor("#ffffff");
 		gnode.setTitle(nameFactory.getClassName(nodeId.getKey()));
 
 		gnode.addSubtitle(0, nameFactory.getSourceName(node.getSource()));
 
-		gnode.setHeaderBackgroundColor("#aaaaaa");
-		gnode.setHeaderTextColor("#ffffff");
+//		gnode.setHeaderBackgroundColor("#aaaaaa");
+//		gnode.setHeaderTextColor("#ffffff");
 		gnode.setTitle(nameFactory.getInstanceName(node.getInstance()));
 
 		if (fields) {

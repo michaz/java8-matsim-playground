@@ -135,7 +135,7 @@ task guiceDot (type: JavaExec) {
     classpath = configurations.wurst
     inputs.file input
     outputs.dir output
-    main = 'guice.Graph2'
+    main = 'guice.GraphReduced'
     args input.getPath(), 'guice.MyModule', output.getPath()
 }
 

@@ -56,7 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class Graph2 {
+public class GraphReduced {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, IllegalAccessException, InstantiationException {
         String configFileToGraph = args[0];
