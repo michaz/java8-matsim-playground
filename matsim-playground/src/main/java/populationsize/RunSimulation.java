@@ -61,7 +61,7 @@ public class RunSimulation {
 		final double cadytsWeightLinks;
 		final double cadytsWeightHistogram;
 		if (alternative.endsWith("with-histogram")) {
-			cadytsWeightLinks = 0.0;
+			cadytsWeightLinks = 100.0;
 			cadytsWeightHistogram = 100.0;
 		} else {
 			cadytsWeightLinks = 100.0;

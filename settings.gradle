@@ -1,1 +1,1 @@
-include 'matsim-playground'
+include 'matsim-playground', 'hmm-lib'

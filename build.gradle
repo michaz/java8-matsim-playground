@@ -10,9 +10,25 @@ repositories {
     maven { url "http://download.java.net/maven/2" }
     maven { url "http://download.osgeo.org/webdav/geotools" }
     mavenCentral()
-    mavenLocal()
     maven { url "http://dl.bintray.com/matsim/matsim" }
     maven { url "http://oss.jfrog.org/artifactory/libs-snapshot" }
+}
+
+project (':hmm-lib') {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        testCompile group: 'junit', name: 'junit', version:'4.8.2'
+    }
+}
+
+project ('matsim-playground') {
+    apply plugin: 'java'
+    dependencies {
+        compile project(':hmm-lib')
+    }
 }
 
 def sample = 0.1

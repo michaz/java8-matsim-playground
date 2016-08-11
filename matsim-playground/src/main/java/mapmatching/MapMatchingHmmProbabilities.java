@@ -17,8 +17,9 @@
 
 package mapmatching;
 
-import de.bmw.hmm.HmmProbabilities;
-import de.bmw.hmm.TimeStep;
+
+import com.bmw.hmm_lib.HmmProbabilities;
+import com.bmw.hmm_lib.TimeStep;
 
 import java.util.List;
 

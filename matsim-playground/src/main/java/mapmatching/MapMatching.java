@@ -1,8 +1,8 @@
 package mapmatching;
 
-import de.bmw.hmm.Hmm;
-import de.bmw.hmm.MostLikelySequence;
-import de.bmw.hmm.TimeStep;
+import com.bmw.hmm_lib.Hmm;
+import com.bmw.hmm_lib.MostLikelySequence;
+import com.bmw.hmm_lib.TimeStep;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;

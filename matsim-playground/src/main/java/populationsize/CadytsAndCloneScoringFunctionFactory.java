@@ -63,8 +63,6 @@ public class CadytsAndCloneScoringFunctionFactory implements ScoringFunctionFact
         CadytsScoring<Link> scoringFunction = new CadytsScoring<Link>(person.getSelectedPlan(), config, ptStep, cadyts);
         scoringFunction.setWeight(cadytsweight);
         sumScoringFunction.addScoringFunction(scoringFunction);
-
-        // prior
         sumScoringFunction.addScoringFunction(cloneService.createNewScoringFunction(person));
         sumScoringFunction.addScoringFunction(new CharyparNagelMoneyScoring(1.0));
 

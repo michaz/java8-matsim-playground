@@ -63,7 +63,6 @@ public class BerlinRunUncongested3 {
 		scenario.getPopulation().getPersons().keySet().removeIf(id -> MatsimRandom.getRandom().nextDouble() > sample);
 
 		final Controler controller = new Controler(scenario);
-		controller.addOverridingModule(new OTFVisLiveModule());
 		controller.addOverridingModule(new PersoDistHistoModule());
 		controller.addOverridingModule(new ClonesModule());
 		controller.addControlerListener(new ShutdownListener() {
