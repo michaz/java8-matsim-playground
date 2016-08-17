@@ -1,6 +1,8 @@
 package cdr;
 
 import cadyts.CadytsModule;
+import clones.ClonesConfigGroup;
+import clones.ClonesModule;
 import jfastemd.Feature;
 import jfastemd.JFastEMD;
 import jfastemd.Signature;
@@ -20,6 +22,7 @@ import org.matsim.core.config.groups.QSimConfigGroup;
 import org.matsim.core.config.groups.StrategyConfigGroup.StrategySettings;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.replanning.PlanStrategy;
 import org.matsim.core.replanning.PlanStrategyImpl;
 import org.matsim.core.replanning.strategies.DefaultPlanStrategiesModule;
@@ -132,14 +135,14 @@ public class CompareMain {
 		return sum / lengthsum;
 	}
 
-	public static Counts volumesToCounts(Network network, VolumesAnalyzer volumesAnalyzer, double weight) {
+	public static Counts volumesToCounts(Network network, VolumesAnalyzer volumesAnalyzer, double scaleFactor) {
 		Counts counts = new Counts();
 		for (Link link : network.getLinks().values()) {
 			Count count = counts.createAndAddCount(link.getId(), link.getId().toString());
 			int[] volumesForLink = getVolumesForLink(volumesAnalyzer, link);
 			int h = 1;
 			for (int v : volumesForLink) {
-				count.createVolume(h, v * weight);
+				count.createVolume(h, v * scaleFactor);
 				++h;
 			}
 		}
@@ -191,8 +194,6 @@ public class CompareMain {
 		Config config = ConfigUtils.createConfig();
 		final double cadytsWeight = 100.0;
 		ActivityParams sightingParam = new ActivityParams("sighting");
-		// sighting.setOpeningTime(0.0);
-		// sighting.setClosingTime(0.0);
 		sightingParam.setTypicalDuration(30.0 * 60);
 		config.planCalcScore().addActivityParams(sightingParam);
 		config.planCalcScore().setPerforming_utils_hr(0);
@@ -201,38 +202,33 @@ public class CompareMain {
 		config.planCalcScore().getModes().get("car").setMonetaryDistanceRate(0);
 		config.planCalcScore().setWriteExperiencedPlans(true);
         config.controler().setOutputDirectory(outputDirectory);
+		config.controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
 		config.controler().setLastIteration(10);
-		QSimConfigGroup tmp = config.qsim();
-		tmp.setFlowCapFactor(100);
-		tmp.setStorageCapFactor(100);
-		tmp.setRemoveStuckVehicles(false);
-
+		config.controler().setCreateGraphs(false);
+		config.qsim().setFlowCapFactor(100);
+		config.qsim().setStorageCapFactor(100);
+		config.qsim().setRemoveStuckVehicles(false);
 		StrategySettings stratSets = new StrategySettings(Id.create(1, StrategySettings.class));
 		stratSets.setStrategyName(DefaultPlanStrategiesModule.DefaultSelector.ChangeExpBeta.toString());
 		stratSets.setWeight(1.) ;
-		config.strategy().addStrategySettings(stratSets) ;
+		config.strategy().addStrategySettings(stratSets);
+		ClonesConfigGroup clonesConfigGroup = new ClonesConfigGroup();
+		clonesConfigGroup.setCloneFactor(3.0);
+		config.addModule(clonesConfigGroup);
 
 
-		final MutableScenario scenario2 = (MutableScenario) ScenarioUtils.createScenario(config);
-		scenario2.setNetwork(network);
+		final MutableScenario scenario = (MutableScenario) ScenarioUtils.createScenario(config);
+		scenario.setNetwork(network);
+		scenario.addScenarioElement("calibrationCounts", counts);
+		PopulationFromSightings.createPopulationWithTwoPlansEach(scenario, linkToZoneResolver, allSightings);
 
-		PopulationFromSightings.createPopulationWithTwoPlansEach(scenario2, linkToZoneResolver, allSightings);
-//		PopulationFromSightings.preparePopulation(scenario2, linkToZoneResolver, allSightings);
-
-		Controler controler = new Controler(scenario2);
+		Controler controler = new Controler(scenario);
 		controler.addOverridingModule(new CadytsModule());
-		controler.getConfig().controler().setCreateGraphs(false);
+		controler.addOverridingModule(new ClonesModule());
 		CadytsAndCloneScoringFunctionFactory factory = new CadytsAndCloneScoringFunctionFactory();
 		factory.setCadytsweight(cadytsWeight);
 		controler.setScoringFunctionFactory(factory);
 		controler.run();
-		double sum=0.0;
-//		for (Person person : scenario2.getPopulation().getPersons().values()) {
-//			Plan plan = person.getSelectedPlan();
-//			double currentPlanCadytsCorrection = calcCadytsScore(context, plan);
-//			sum += Math.abs(currentPlanCadytsCorrection);
-//		}
-		System.out.println(sum);
 		return controler.getVolumes();
 	}
 

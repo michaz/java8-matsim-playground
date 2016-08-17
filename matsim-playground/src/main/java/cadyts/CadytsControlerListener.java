@@ -32,6 +32,7 @@ import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.contrib.cadyts.car.PlansTranslatorBasedOnEvents;
 import org.matsim.contrib.cadyts.general.CadytsConfigGroup;
+import org.matsim.contrib.cadyts.general.PlansTranslator;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
@@ -56,7 +57,7 @@ class CadytsControlerListener implements BeforeMobsimListener, AfterMobsimListen
 
 
     @Inject
-    PlansTranslatorBasedOnEvents ptStep;
+	PlansTranslator ptStep;
 
 	private final double countsScaleFactor;
     private final boolean writeAnalysisFile;
@@ -83,14 +84,14 @@ class CadytsControlerListener implements BeforeMobsimListener, AfterMobsimListen
 
     @Override
     public void notifyBeforeMobsim(BeforeMobsimEvent event) {
-        for (Person person : scenario.getPopulation().getPersons().values()) {
-            this.calibrator.addToDemand(ptStep.getCadytsPlan(person.getSelectedPlan()));
-        }
     }
 
     @Override
     public void notifyAfterMobsim(AfterMobsimEvent event) {
-        this.calibrator.afterNetworkLoading(new SimResults<Link>() {
+		for (Person person : scenario.getPopulation().getPersons().values()) {
+			this.calibrator.addToDemand(ptStep.getCadytsPlan(person.getSelectedPlan()));
+		}
+		this.calibrator.afterNetworkLoading(new SimResults<Link>() {
 
             @Override
             public double getSimValue(final Link link, final int startTime_s, final int endTime_s, final TYPE type) {

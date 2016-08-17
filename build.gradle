@@ -36,6 +36,20 @@ def Rscript = '/usr/local/bin/Rscript'
 
 def truths = ['uncongested3', 'congested3']
 
+task illustrative(type: JavaExec) {
+    outputs.dir file('output/illustrative/8-count')
+    outputs.dir file('output/illustrative/8-count-orig')
+    outputs.dir file('output/illustrative/18-count')
+    outputs.dir file('output/illustrative/18-count-orig')
+    classpath = configurations.wurst
+    main = 'stratum.Main'
+}
+
+task illustrative_plot(type: Exec, dependsOn: illustrative) {
+    outputs.file file('output/illustrative/ill-count-joined.pdf')
+    commandLine Rscript, 'r-src/ill-count-joined.R'
+}
+
 task uncongested3(type: JavaExec) {
     def input = file('input/berlin/2kW.15.xml')
     def output = file('output/berlin/uncongested3/output-berlin')
@@ -130,7 +144,7 @@ truths.each { truth ->
                 outputs.file txt
                 outputs.file pdf
                 outputs.file png
-                commandLine Rscript, 'histogram.R', baseRun.getPath(), run.getPath(), txt.getPath(), pdf.getPath(), png.getPath()
+                commandLine Rscript, 'r-src/histogram.R', baseRun.getPath(), run.getPath(), txt.getPath(), pdf.getPath(), png.getPath()
             }
             task ("en-route_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
                 def pdf = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route.pdf")
@@ -139,7 +153,7 @@ truths.each { truth ->
                 inputs.dir run
                 outputs.file pdf
                 outputs.file png
-                commandLine Rscript, 'en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath(), png.getPath()
+                commandLine Rscript, 'r-src/en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath(), png.getPath()
             }
         }
     }

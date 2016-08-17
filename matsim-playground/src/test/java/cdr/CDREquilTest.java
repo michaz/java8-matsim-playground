@@ -1,5 +1,6 @@
 package cdr;
 
+import clones.ClonesModule;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,6 +23,7 @@ import org.matsim.core.replanning.StrategyManagerModule;
 import org.matsim.core.router.TripRouterModule;
 import org.matsim.core.router.costcalculators.TravelDisutilityModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
+import org.matsim.core.scoring.ExperiencedPlansModule;
 import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionModule;
 import org.matsim.core.trafficmonitoring.TravelTimeCalculatorModule;
 import org.matsim.counts.Counts;
@@ -72,6 +74,7 @@ public class CDREquilTest {
                 new EventsManagerModule(),
                 new TravelDistanceStatsModule(),
                 new CharyparNagelScoringFunctionModule(),
+                new ExperiencedPlansModule(),
                 new TripRouterModule(),
                 new TravelDisutilityModule(),
                 new TravelTimeCalculatorModule(),

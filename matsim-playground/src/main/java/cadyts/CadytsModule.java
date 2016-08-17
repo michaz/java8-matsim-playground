@@ -64,11 +64,8 @@ public class CadytsModule extends AbstractModule {
     public void install() {
         Multibinder<MeasurementLoader<Link>> measurementLoaderBinder = Multibinder.newSetBinder((Binder) binder(), new TypeLiteral<MeasurementLoader<Link>>(){});
         bind(AnalyticalCalibrator.class).toProvider(CalibratorProvider.class).in(Singleton.class);
-        bind(PlansTranslatorBasedOnEvents.class).in(Singleton.class);
-        bind(PlansTranslator.class).to(PlansTranslatorBasedOnEvents.class).in(Singleton.class);
+        bind(PlansTranslator.class).to(PlanToPlanStepBasedOnEvents.class).in(Singleton.class);
         addControlerListenerBinding().to(CadytsControlerListener.class);
-//        addControlerListenerBinding().toProvider(MyControlerListenerProvider.class);
-        addEventHandlerBinding().to(PlansTranslatorBasedOnEvents.class);
     }
 
     static class CalibratorProvider implements Provider<AnalyticalCalibrator<Link>> {
@@ -94,56 +91,6 @@ public class CadytsModule extends AbstractModule {
                 measurementLoader.load(linkAnalyticalCalibrator);
             }
             return linkAnalyticalCalibrator;
-        }
-    }
-
-    static class MyControlerListenerProvider implements Provider<ControlerListener> {
-        @Inject
-        Scenario scenario;
-        @Inject
-        OutputDirectoryHierarchy controlerIO;
-        @Inject
-        VolumesAnalyzer volumesAnalyzer;
-        @Override
-        public ControlerListener get() {
-            Map<String, IterationSummaryFileControlerListener.Writer> things = new HashMap<>();
-            things.put("linkstats.txt", new IterationSummaryFileControlerListener.Writer() {
-                @Override
-                public StreamingOutput notifyStartup(StartupEvent event) {
-                    return new StreamingOutput() {
-                        @Override
-                        public void write(PrintWriter pw) throws IOException {
-                            pw.printf("%s\t%s\t%s\t%s\t%s\n",
-                                    "iteration",
-                                    "link",
-                                    "hour",
-                                    "sim.volume",
-                                    "count.volume");
-                        }
-                    };
-                }
-
-                @Override
-                public StreamingOutput notifyIterationEnds(final IterationEndsEvent event) {
-                    CountsComparisonAlgorithm countsComparisonAlgorithm = new CountsComparisonAlgorithm(volumesAnalyzer, (Counts) scenario.getScenarioElement("counts"), scenario.getNetwork(), 1.0);
-                    countsComparisonAlgorithm.run();
-                    final List<CountSimComparison> comparison = countsComparisonAlgorithm.getComparison();
-                    return new StreamingOutput() {
-                        @Override
-                        public void write(PrintWriter pw) throws IOException {
-                            for (CountSimComparison countLink : comparison) {
-                                pw.printf("%d\t%s\t%d\t%f\t%f\n",
-                                        event.getIteration(),
-                                        countLink.getId().toString(),
-                                        countLink.getHour(),
-                                        countLink.getSimulationValue(),
-                                        countLink.getCountValue());
-                            }
-                        }
-                    };
-                }
-            });
-            return new IterationSummaryFileControlerListener(controlerIO, things);
         }
     }
 

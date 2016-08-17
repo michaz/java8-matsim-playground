@@ -78,8 +78,9 @@ class ScenarioReconstructor implements Provider<Scenario> {
         public Config get() {
             final Config config = ConfigUtils.createConfig();
             CadytsConfigGroup cadyts = ConfigUtils.addOrGetModule(config, CadytsConfigGroup.GROUP_NAME, CadytsConfigGroup.class);
-            cadyts.setVarianceScale(0.00000000001);
-            cadyts.setMinFlowStddev_vehPerHour(10.0);
+            cadyts.setVarianceScale(0.1);
+            cadyts.setMinFlowStddev_vehPerHour(1.0);
+
 
             config.controler().setLastIteration(50);
             config.qsim().setFlowCapFactor(100);

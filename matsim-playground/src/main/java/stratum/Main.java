@@ -34,11 +34,25 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.ControlerDefaultsModule;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.ControlerListener;
 import org.matsim.counts.Count;
+import org.matsim.counts.CountSimComparison;
 import org.matsim.counts.Counts;
 import org.matsim.counts.Volume;
+import org.matsim.counts.algorithms.CountsComparisonAlgorithm;
+import populationsize.CadytsAndCloneScoringFunctionFactory;
+import util.IterationSummaryFileControlerListener;
+import util.StreamingOutput;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,9 +60,8 @@ import java.util.Map;
 public class Main {
 
     public static void main(String[] args) {
-        // run("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/illustrative/random-zeiten/10-count", Arrays.asList(10));
-        run("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/illustrative/wurst/8-count", Arrays.asList(8));
-        run("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/illustrative/wurst/18-count", Arrays.asList(18));
+        run("output/illustrative/8-count", Arrays.asList(8));
+        run("output/illustrative/18-count", Arrays.asList(18));
     }
 
     private static void run(final String outputDirectory, List<Integer> countHours) {
@@ -62,6 +75,7 @@ public class Main {
 
         Scenario groundTruth = new OneWorkplaceOneStratumUnderestimated().get();
         groundTruth.getConfig().controler().setOutputDirectory(outputDirectory + "-orig");
+        groundTruth.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
         Controler controler = new Controler(groundTruth);
         controler.setModules(
                 new ControlerDefaultsModule(),
@@ -78,6 +92,7 @@ public class Main {
         cdrScenario.addScenarioElement(Counts.ELEMENT_NAME, allCounts);
         cdrScenario.addScenarioElement("calibrationCounts", calibrationCounts);
         cdrScenario.getConfig().controler().setOutputDirectory(outputDirectory);
+        cdrScenario.getConfig().controler().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.overwriteExistingFiles);
         ClonesConfigGroup clonesConfig = ConfigUtils.addOrGetModule(cdrScenario.getConfig(), ClonesConfigGroup.NAME, ClonesConfigGroup.class);
         clonesConfig.setCloneFactor(2.0);
 
@@ -86,8 +101,15 @@ public class Main {
                 new ControlerDefaultsModule(),
                 phoneModule,
                 new CadytsModule(),
-                new ClonesModule());
-        controler2.setScoringFunctionFactory(new MyScoringFunctionFactory());
+                new ClonesModule(),
+                new AbstractModule() {
+                    @Override
+                    public void install() {
+                        addControlerListenerBinding().toProvider(MyControlerListenerProvider.class);
+                    }
+                });
+        CadytsAndCloneScoringFunctionFactory scoringFunctionFactory = new CadytsAndCloneScoringFunctionFactory();
+        controler2.setScoringFunctionFactory(scoringFunctionFactory);
         controler2.run();
     }
 
@@ -107,4 +129,53 @@ public class Main {
         return someCounts;
     }
 
+	private static class MyControlerListenerProvider implements Provider<ControlerListener> {
+		@Inject
+		Scenario scenario;
+		@Inject
+		OutputDirectoryHierarchy controlerIO;
+		@Inject
+		VolumesAnalyzer volumesAnalyzer;
+		@Override
+		public ControlerListener get() {
+			Map<String, IterationSummaryFileControlerListener.Writer> things = new HashMap<>();
+			things.put("linkstats.txt", new IterationSummaryFileControlerListener.Writer() {
+				@Override
+				public StreamingOutput notifyStartup(StartupEvent event) {
+					return new StreamingOutput() {
+						@Override
+						public void write(PrintWriter pw) throws IOException {
+							pw.printf("%s\t%s\t%s\t%s\t%s\n",
+									"iteration",
+									"link",
+									"hour",
+									"sim.volume",
+									"count.volume");
+						}
+					};
+				}
+
+				@Override
+				public StreamingOutput notifyIterationEnds(final IterationEndsEvent event) {
+					CountsComparisonAlgorithm countsComparisonAlgorithm = new CountsComparisonAlgorithm(volumesAnalyzer, (Counts) scenario.getScenarioElement("counts"), scenario.getNetwork(), 1.0);
+					countsComparisonAlgorithm.run();
+					final List<CountSimComparison> comparison = countsComparisonAlgorithm.getComparison();
+					return new StreamingOutput() {
+						@Override
+						public void write(PrintWriter pw) throws IOException {
+							for (CountSimComparison countLink : comparison) {
+								pw.printf("%d\t%s\t%d\t%f\t%f\n",
+										event.getIteration(),
+										countLink.getId().toString(),
+										countLink.getHour(),
+										countLink.getSimulationValue(),
+										countLink.getCountValue());
+							}
+						}
+					};
+				}
+			});
+			return new IterationSummaryFileControlerListener(controlerIO, things);
+		}
+	}
 }
