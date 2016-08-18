@@ -81,15 +81,13 @@ public class CallProcess implements ActivityStartEventHandler, ActivityEndEventH
 		for (Person p : population.getPersons().values()) {
             CallingAgent agent = new CallingAgent();
             agent.person = p;
-            Object phonerate = p.getCustomAttributes().get("phonerate");
+            double phonerate = (Double) scenario.getPopulation().getPersonAttributes().getAttribute(p.getId().toString(), "phonerate");
             agents.put(p.getId(), agent);
-            if (phonerate != null) {
-                agent.rate = (double) phonerate;
-                NextCallMessage m = new NextCallMessage();
-                m.agent = agent;
-                m.setMessageArrivalTime(agent.getNextCallTime());
-                mq.putMessage(m);
-            }
+			agent.rate = (double) phonerate;
+			NextCallMessage m = new NextCallMessage();
+			m.agent = agent;
+			m.setMessageArrivalTime(agent.getNextCallTime());
+			mq.putMessage(m);
 		}
         this.scheduler = new SteppableScheduler(mq);
 	}

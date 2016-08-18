@@ -29,56 +29,56 @@ import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.core.api.experimental.events.EventsManager;
 import org.matsim.core.api.internal.HasPersonId;
-import org.matsim.core.config.Config;
+import org.matsim.core.controler.OutputDirectoryHierarchy;
+import org.matsim.core.controler.events.IterationEndsEvent;
+import org.matsim.core.controler.events.IterationStartsEvent;
+import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.IterationEndsListener;
+import org.matsim.core.controler.listener.IterationStartsListener;
+import org.matsim.core.controler.listener.StartupListener;
 import org.matsim.core.events.EventsUtils;
-import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.events.handler.BasicEventHandler;
+import org.matsim.utils.objectattributes.ObjectAttributes;
 
-import java.util.Arrays;
+import javax.inject.Inject;
 
-public class WorkerNonWorkerTagesgang {
+class WorkerNonWorkerTagesgang implements StartupListener, IterationStartsListener, IterationEndsListener {
 
-    interface Predicate {
-        boolean test(Id<Person> personId);
+    private final OutputDirectoryHierarchy controlerIO;
+    private final Scenario scenario;
+    private final EventsManager eventsManager;
+    private final ObjectAttributes baseRunPersonAttributes;
+    private BasicEventHandler eventHandler;
+    private LegHistogram workersLegHistogram;
+    private LegHistogram nonWorkersLegHistogram;
+
+    @Inject
+    WorkerNonWorkerTagesgang(OutputDirectoryHierarchy controlerIO, Scenario scenario, EventsManager eventsManager) {
+        this.controlerIO = controlerIO;
+        this.scenario = scenario;
+        this.eventsManager = eventsManager;
+        this.baseRunPersonAttributes = (ObjectAttributes) scenario.getScenarioElement("baseRunPersonAttributes");
     }
 
-    public static void main(String[] args) {
-        final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
-        final RegimeResource uncongested = experiment.getRegime("uncongested3");
-        final Scenario baseRun = uncongested.getBaseRun().getOutputScenario();
+    @Override
+    public void notifyStartup(StartupEvent event) {
 
+    }
 
-
-
-        Predicate predicate;
-        predicate = new Predicate() {
-            @Override
-            public boolean test(Id<Person> personId) {
-                return isWorker(personId, baseRun);
-            }
+    @Override
+    public void notifyIterationStarts(IterationStartsEvent event) {
+        Predicate predicate = personId -> {
+            Id<Person> originalId = resolvePerson(personId);
+            return (Boolean) baseRunPersonAttributes.getAttribute(originalId.toString(), "isWorker");
         };
-
-
-        doIt(predicate, baseRun.getConfig(), uncongested.getBaseRun().getIteration(0));
-        for (String rate : Arrays.asList("5.0")) {
-            final MultiRateRunResource multiRateRun = uncongested.getMultiRateRun("trajectoryenrichment100.0random");
-            final RunResource run = multiRateRun.getRateRun(rate, "1");
-            IterationResource iteration = run.getLastIteration();
-            doIt(predicate, baseRun.getConfig(), iteration);
-            doIt(predicate, baseRun.getConfig(), run.getIteration(0));
-        }
-    }
-
-    private static void doIt(final Predicate isHeavyPhoner, Config outputConfig, IterationResource iteration) {
-        final EventsManager workersEventsManager = EventsUtils.createEventsManager(outputConfig);
-        final EventsManager nonWorkersEventsManager = EventsUtils.createEventsManager(outputConfig);
-        EventsManager eventsManager = EventsUtils.createEventsManager(outputConfig);
-        eventsManager.addHandler(new BasicEventHandler() {
+        final EventsManager workersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+        final EventsManager nonWorkersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+        eventHandler = new BasicEventHandler() {
             @Override
             public void handleEvent(Event event) {
                 if (event instanceof HasPersonId) {
                     Id<Person> personId = ((HasPersonId) event).getPersonId();
-                    if (isHeavyPhoner.test(personId)) {
+                    if (predicate.test(personId)) {
                         workersEventsManager.processEvent(event);
                     } else {
                         nonWorkersEventsManager.processEvent(event);
@@ -93,22 +93,23 @@ public class WorkerNonWorkerTagesgang {
             public void reset(int iteration) {
 
             }
-        });
-
-        LegHistogram workersLegHistogram = new LegHistogram(300);
-        LegHistogram nonWorkersLegHistogram = new LegHistogram(300);
+        };
+        eventsManager.addHandler(eventHandler);
+        workersLegHistogram = new LegHistogram(300);
+        nonWorkersLegHistogram = new LegHistogram(300);
         workersEventsManager.addHandler(workersLegHistogram);
         nonWorkersEventsManager.addHandler(nonWorkersLegHistogram);
-
-
-        new MatsimEventsReader(eventsManager).readFile(iteration.getEventsFileName());
-        workersLegHistogram.write(iteration.getWd() + "/leghistogram-workers.txt");
-        nonWorkersLegHistogram.write(iteration.getWd() + "/leghistogram-nonworkers.txt");
     }
 
-    private static boolean isWorker(Id<Person> personId, Scenario baseRun) {
-        Id<Person> originalId = resolvePerson(personId);
-        return CountWorkers.isWorker(baseRun.getPopulation().getPersons().get(originalId));
+    @Override
+    public void notifyIterationEnds(IterationEndsEvent event) {
+        workersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-workers.txt");
+        nonWorkersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-nonworkers.txt");
+        eventsManager.removeHandler(eventHandler);
+    }
+
+    interface Predicate {
+        boolean test(Id<Person> personId);
     }
 
     private static Id<Person> resolvePerson(Id<Person> personId) {

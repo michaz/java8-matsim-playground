@@ -155,6 +155,15 @@ truths.each { truth ->
                 outputs.file png
                 commandLine Rscript, 'r-src/en-route.R', baseRun.getPath(), run.getPath(), pdf.getPath(), png.getPath()
             }
+            task ("en-route-worker-nonworker_" + truth + "_" + usage + "_" + alternative, type: Exec, dependsOn: simulate) {
+                def pdf = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route-worker-nonworker.pdf")
+                def png = file("output/berlin/$truth/alternatives/$usage/alternatives/$alternative/en-route-worker-nonworker.png")
+                inputs.dir baseRun
+                inputs.dir run
+                outputs.file pdf
+                outputs.file png
+                commandLine Rscript, 'r-src/en-route-worker-nonworker.R', baseRun.getPath(), run.getPath(), pdf.getPath(), png.getPath()
+            }
         }
     }
 }

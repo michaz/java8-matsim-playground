@@ -5,11 +5,14 @@ import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
+import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.ReplayEvents;
 import org.matsim.core.events.EventsManagerModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsWriter;
+import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlWriter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,11 +30,14 @@ public class RunWorkerNonWorker {
 		final double lightUserRate = 5.0;
 		List<Person> persons = new ArrayList<>(baseScenario.getPopulation().getPersons().values());
 		Collections.shuffle(persons, new Random(42));
+		ObjectAttributes personAttributes = baseScenario.getPopulation().getPersonAttributes();
 		for (Person person : baseScenario.getPopulation().getPersons().values()) {
 			if (CountWorkers.isWorker(person)) {
-				person.getCustomAttributes().put("phonerate", 50.0);
+				personAttributes.putAttribute(person.getId().toString(), "phonerate", 50.0);
+				personAttributes.putAttribute(person.getId().toString(), "isWorker", true);
 			} else {
-				person.getCustomAttributes().put("phonerate", lightUserRate);
+				personAttributes.putAttribute(person.getId().toString(), "phonerate", lightUserRate);
+				personAttributes.putAttribute(person.getId().toString(), "isWorker", false);
 			}
 		}
 		ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
@@ -46,6 +52,9 @@ public class RunWorkerNonWorker {
 		final Sightings sightings = results.get(Sightings.class);
 		final VolumesAnalyzer groundTruthVolumes = results.get(VolumesAnalyzer.class);
 		new File(output).mkdirs();
+		ObjectAttributesXmlWriter writer = new ObjectAttributesXmlWriter(personAttributes) ;
+		writer.setPrettyPrint(true);
+		writer.writeFile(output + "/personAttributes.xml.gz");
 		new SightingsWriter(sightings).write(output + "/sightings.txt");
 		final Counts allCounts = CompareMain.volumesToCounts(baseScenario.getNetwork(), groundTruthVolumes, 1.0);
 		allCounts.setYear(2012);

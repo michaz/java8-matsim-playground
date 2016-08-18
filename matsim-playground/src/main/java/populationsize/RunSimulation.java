@@ -37,6 +37,8 @@ import org.matsim.core.utils.io.IOUtils;
 import org.matsim.core.utils.misc.Time;
 import org.matsim.counts.Counts;
 import org.matsim.counts.CountsReaderMatsimV1;
+import org.matsim.utils.objectattributes.ObjectAttributes;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -85,6 +87,10 @@ public class RunSimulation {
 		final MutableScenario scenario = (MutableScenario) ScenarioUtils.createScenario(config);
 		scenario.setNetwork(baseScenario.getNetwork());
 
+		final ObjectAttributes baseRunPersonAttributes = new ObjectAttributes();
+		new ObjectAttributesXmlReader(baseRunPersonAttributes).parse(sightingsDir + "/personAttributes.xml.gz");
+		scenario.addScenarioElement("baseRunPersonAttributes", baseRunPersonAttributes);
+
 		final Sightings allSightings = new SightingsImpl();
 		new SightingsReader(allSightings).read(IOUtils.getInputStream(sightingsDir + "/sightings.txt"));
 		final ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
@@ -116,6 +122,7 @@ public class RunSimulation {
 				install(new CadytsModule());
 				install(new ClonesModule());
 				install(new PersoDistHistoModule());
+				addControlerListenerBinding().to(WorkerNonWorkerTagesgang.class).asEagerSingleton();
 				if (alternative.equals("full-procedure") || alternative.equals("full-procedure-with-histogram")) {
 					install(new TrajectoryReEnricherModule());
 				} else if (alternative.equals("clone") || alternative.equals("clone-with-histogram")) {
