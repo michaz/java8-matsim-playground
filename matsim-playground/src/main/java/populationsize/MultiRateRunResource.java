@@ -88,44 +88,8 @@ public class MultiRateRunResource {
         return new RegimeResource(WD + "/src", regime).getBaseRun();
     }
 
-    public void twoRates(String string) {
-        final Scenario baseScenario = getBaseRun().getLastIteration().getExperiencedPlansAndNetwork();
-        final double rate = Integer.parseInt(string);
-        for (Person person : baseScenario.getPopulation().getPersons().values()) {
-            if (CountWorkers.isWorker(person)) {
-                person.getCustomAttributes().put("phonerate", 50.0);
-            } else {
-                person.getCustomAttributes().put("phonerate", rate);
-            }
-        }
-        ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();
-        CallBehavior callBehavior = new PhoneRateAttributeCallBehavior(baseScenario);
-        ReplayEvents.Results results = ReplayEvents.run(
-                baseScenario.getConfig(),
-                getBaseRun().getLastIteration().getEventsFileName(),
-                new ScenarioByInstanceModule(baseScenario),
-                new VolumesAnalyzerModule(),
-                new CollectSightingsModule(),
-                new CallBehaviorModule(callBehavior, linkToZoneResolver));
 
-
-        final Sightings sightings = results.get(Sightings.class);
-        final VolumesAnalyzer groundTruthVolumes = results.get(VolumesAnalyzer.class);
-
-        String rateDir = WD + "/rates/" + string;
-        new File(rateDir).mkdirs();
-
-        new SightingsWriter(sightings).write(rateDir + "/sightings.txt");
-        final Counts allCounts = CompareMain.volumesToCounts(baseScenario.getNetwork(), groundTruthVolumes, 1.0);
-        allCounts.setYear(2012);
-        new CountsWriter(allCounts).write(rateDir + "/all_counts.xml.gz");
-        final Counts someCounts = filterCounts(allCounts);
-        someCounts.setYear(2012);
-        new CountsWriter(someCounts).write(rateDir + "/calibration_counts.xml.gz");
-    }
-
-
-    public Sightings getSightings(String rate) {
+	public Sightings getSightings(String rate) {
         final Sightings allSightings = new SightingsImpl();
         new SightingsReader(allSightings).read(IOUtils.getInputStream(WD + "/rates/" + rate + "/sightings.txt"));
         return allSightings;
