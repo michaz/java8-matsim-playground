@@ -20,25 +20,43 @@
  *  * ***********************************************************************
  */
 
-package populationsize;
+package berlin;
 
+import org.apache.log4j.Logger;
+import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Activity;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.core.controler.events.StartupEvent;
+import org.matsim.core.controler.listener.StartupListener;
 
-public class CountWorkers {
+import javax.inject.Inject;
 
-    public static void main(String[] args) {
-        final ExperimentResource experiment = new ExperimentResource("/Users/michaelzilske/runs-svn/synthetic-cdr/transportation/berlin/");
-        final RegimeResource uncongested = experiment.getRegime("uncongested");
-        RunResource baseRun = uncongested.getBaseRun();
-        Population population = baseRun.getOutputScenario().getPopulation();
+
+public class CountWorkers implements StartupListener {
+
+    private static final Logger logger = Logger.getLogger(CountWorkers.class);
+    public static final String IS_WORKER = "isWorker";
+
+    @Inject Scenario scenario;
+    @Inject Population population;
+
+    @Override
+    public void notifyStartup(StartupEvent event) {
         int nWorkers = 0;
         for (Person person : population.getPersons().values()) {
-            if (isWorker(person)) nWorkers++;
+            if (isWorker(person)) {
+                nWorkers++;
+                population.getPersonAttributes().putAttribute(person.getId().toString(), IS_WORKER, true);
+            } else {
+                population.getPersonAttributes().putAttribute(person.getId().toString(), IS_WORKER, false);
+            }
         }
-        System.out.printf("Workers: %d, non-workers: %d", nWorkers, population.getPersons().size() - nWorkers);
+        logger.info(String.format("Workers: %d, non-workers: %d", nWorkers, population.getPersons().size() - nWorkers));
+
+        // We are the base run, so we add our person attributes as base run person attributes.
+        scenario.addScenarioElement(WorkerNonWorkerTagesgang.BASE_RUN_PERSON_ATTRIBUTES, population.getPersonAttributes());
     }
 
     public static boolean isWorker(Person person) {

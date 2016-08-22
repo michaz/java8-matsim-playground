@@ -1,11 +1,11 @@
 package populationsize;
 
+import berlin.CountWorkers;
 import cdr.*;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.population.Person;
-import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.ReplayEvents;
 import org.matsim.core.events.EventsManagerModule;
 import org.matsim.core.scenario.ScenarioByInstanceModule;
@@ -32,12 +32,10 @@ public class RunWorkerNonWorker {
 		Collections.shuffle(persons, new Random(42));
 		ObjectAttributes personAttributes = baseScenario.getPopulation().getPersonAttributes();
 		for (Person person : baseScenario.getPopulation().getPersons().values()) {
-			if (CountWorkers.isWorker(person)) {
+			if ((Boolean) personAttributes.getAttribute(person.getId().toString(), CountWorkers.IS_WORKER)) {
 				personAttributes.putAttribute(person.getId().toString(), "phonerate", 50.0);
-				personAttributes.putAttribute(person.getId().toString(), "isWorker", true);
 			} else {
 				personAttributes.putAttribute(person.getId().toString(), "phonerate", lightUserRate);
-				personAttributes.putAttribute(person.getId().toString(), "isWorker", false);
 			}
 		}
 		ZoneTracker.LinkToZoneResolver linkToZoneResolver = new LinkIsZone();

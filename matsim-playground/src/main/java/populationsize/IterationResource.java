@@ -12,6 +12,7 @@ import org.matsim.core.population.PopulationReaderMatsimV5;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.scoring.EventsToScore;
 import org.matsim.core.scoring.functions.CharyparNagelScoringFunctionFactory;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 
 public class IterationResource {
 
@@ -38,6 +39,7 @@ public class IterationResource {
 	public Scenario getExperiencedPlansAndNetwork() {
 		Scenario baseScenario = getRun().getConfigAndNetwork();
 		new MatsimPopulationReader(baseScenario).readFile(wd + "/" + iterationPrefix() + "experienced_plans.xml.gz");
+		new ObjectAttributesXmlReader(baseScenario.getPopulation().getPersonAttributes()).parse(wd + "../../output_personAttributes.xml.gz");
 		return baseScenario;
 	}
 

@@ -32,6 +32,7 @@ import org.matsim.core.network.MatsimNetworkReader;
 import org.matsim.core.population.MatsimPopulationReader;
 import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.pt.transitSchedule.api.TransitScheduleReader;
+import org.matsim.utils.objectattributes.ObjectAttributesXmlReader;
 import org.matsim.vehicles.VehicleReaderV1;
 import util.FileIO;
 import util.StreamingOutput;
@@ -105,6 +106,7 @@ public class RunResource {
 	public Scenario getOutputScenario() {
 		Scenario scenario = getConfigAndNetwork();
 		new MatsimPopulationReader(scenario).readFile(wd + "/" + runPrefix() + "output_plans.xml.gz");
+		new ObjectAttributesXmlReader(scenario.getPopulation().getPersonAttributes()).parse(wd + "/" + runPrefix() + "output_personAttributes.xml.gz");
 		if (scenario.getConfig().transit().isUseTransit()) {
 			new TransitScheduleReader(scenario).readFile(wd + "/" + runPrefix() + "output_transitSchedule.xml.gz");
 			new VehicleReaderV1(scenario.getTransitVehicles()).readFile(wd + "/" + runPrefix() + "output_vehicles.xml.gz");

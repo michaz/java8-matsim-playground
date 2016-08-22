@@ -22,6 +22,7 @@
 
 package populationsize;
 
+import berlin.CountWorkers;
 import cdr.*;
 import org.matsim.analysis.VolumesAnalyzer;
 import org.matsim.analysis.VolumesAnalyzerModule;

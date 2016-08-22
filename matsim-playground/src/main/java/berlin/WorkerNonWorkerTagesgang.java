@@ -20,7 +20,7 @@
  *  * ***********************************************************************
  */
 
-package populationsize;
+package berlin;
 
 import org.matsim.analysis.LegHistogram;
 import org.matsim.api.core.v01.Id;
@@ -42,12 +42,12 @@ import org.matsim.utils.objectattributes.ObjectAttributes;
 
 import javax.inject.Inject;
 
-class WorkerNonWorkerTagesgang implements StartupListener, IterationStartsListener, IterationEndsListener {
+public class WorkerNonWorkerTagesgang implements StartupListener, IterationStartsListener, IterationEndsListener {
 
+    public static final String BASE_RUN_PERSON_ATTRIBUTES = "baseRunPersonAttributes";
     private final OutputDirectoryHierarchy controlerIO;
     private final Scenario scenario;
     private final EventsManager eventsManager;
-    private final ObjectAttributes baseRunPersonAttributes;
     private BasicEventHandler eventHandler;
     private LegHistogram workersLegHistogram;
     private LegHistogram nonWorkersLegHistogram;
@@ -57,7 +57,6 @@ class WorkerNonWorkerTagesgang implements StartupListener, IterationStartsListen
         this.controlerIO = controlerIO;
         this.scenario = scenario;
         this.eventsManager = eventsManager;
-        this.baseRunPersonAttributes = (ObjectAttributes) scenario.getScenarioElement("baseRunPersonAttributes");
     }
 
     @Override
@@ -67,6 +66,7 @@ class WorkerNonWorkerTagesgang implements StartupListener, IterationStartsListen
 
     @Override
     public void notifyIterationStarts(IterationStartsEvent event) {
+        ObjectAttributes baseRunPersonAttributes = (ObjectAttributes) scenario.getScenarioElement(BASE_RUN_PERSON_ATTRIBUTES);
         Predicate predicate = personId -> {
             Id<Person> originalId = resolvePerson(personId);
             return (Boolean) baseRunPersonAttributes.getAttribute(originalId.toString(), "isWorker");

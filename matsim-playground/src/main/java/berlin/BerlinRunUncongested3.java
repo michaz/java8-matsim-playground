@@ -25,9 +25,9 @@ package berlin;
 import cdr.PersoDistHistoModule;
 import clones.ClonesModule;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.contrib.otfvis.OTFVisLiveModule;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.controler.OutputDirectoryHierarchy;
 import org.matsim.core.controler.events.ShutdownEvent;
@@ -65,6 +65,13 @@ public class BerlinRunUncongested3 {
 		final Controler controller = new Controler(scenario);
 		controller.addOverridingModule(new PersoDistHistoModule());
 		controller.addOverridingModule(new ClonesModule());
+		controller.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				addControlerListenerBinding().to(CountWorkers.class);
+				addControlerListenerBinding().to(WorkerNonWorkerTagesgang.class);
+			}
+		});
 		controller.addControlerListener(new ShutdownListener() {
 			@Override
 			public void notifyShutdown(ShutdownEvent shutdownEvent) {

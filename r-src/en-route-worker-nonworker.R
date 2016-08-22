@@ -10,11 +10,10 @@ histo0 <- read.table(paste0(runPath,"/ITERS/it.0/legHistogram-nonworkers.txt",se
 histo100 <- read.table(paste0(runPath,"/ITERS/it.100/legHistogram-nonworkers.txt",sep=""), header=TRUE)
 
 
-# TODO: Create stratified en-route diagram in baserun
 # TODO: Same for workers
 # TODO: Fix Run!!!
 
-histobase <- read.table(paste0(baseRunPath, "/ITERS/it.0/0.legHistogram.txt",sep=""), header=TRUE)
+histobase <- read.table(paste0(baseRunPath, "/ITERS/it.0/legHistogram-nonworkers.txt",sep=""), header=TRUE)
 
 histo0["group"] = "initial"
 histo100["group"] = "calibrated"
