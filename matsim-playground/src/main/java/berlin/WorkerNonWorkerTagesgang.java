@@ -66,46 +66,50 @@ public class WorkerNonWorkerTagesgang implements StartupListener, IterationStart
 
     @Override
     public void notifyIterationStarts(IterationStartsEvent event) {
-        ObjectAttributes baseRunPersonAttributes = (ObjectAttributes) scenario.getScenarioElement(BASE_RUN_PERSON_ATTRIBUTES);
-        Predicate predicate = personId -> {
-            Id<Person> originalId = resolvePerson(personId);
-            return (Boolean) baseRunPersonAttributes.getAttribute(originalId.toString(), "isWorker");
-        };
-        final EventsManager workersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
-        final EventsManager nonWorkersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
-        eventHandler = new BasicEventHandler() {
-            @Override
-            public void handleEvent(Event event) {
-                if (event instanceof HasPersonId) {
-                    Id<Person> personId = ((HasPersonId) event).getPersonId();
-                    if (predicate.test(personId)) {
-                        workersEventsManager.processEvent(event);
+        if (event.getIteration() % 100 == 0) {
+            ObjectAttributes baseRunPersonAttributes = (ObjectAttributes) scenario.getScenarioElement(BASE_RUN_PERSON_ATTRIBUTES);
+            Predicate predicate = personId -> {
+                Id<Person> originalId = resolvePerson(personId);
+                return (Boolean) baseRunPersonAttributes.getAttribute(originalId.toString(), "isWorker");
+            };
+            final EventsManager workersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+            final EventsManager nonWorkersEventsManager = EventsUtils.createEventsManager(scenario.getConfig());
+            eventHandler = new BasicEventHandler() {
+                @Override
+                public void handleEvent(Event event) {
+                    if (event instanceof HasPersonId) {
+                        Id<Person> personId = ((HasPersonId) event).getPersonId();
+                        if (predicate.test(personId)) {
+                            workersEventsManager.processEvent(event);
+                        } else {
+                            nonWorkersEventsManager.processEvent(event);
+                        }
                     } else {
+                        workersEventsManager.processEvent(event);
                         nonWorkersEventsManager.processEvent(event);
                     }
-                } else {
-                    workersEventsManager.processEvent(event);
-                    nonWorkersEventsManager.processEvent(event);
                 }
-            }
 
-            @Override
-            public void reset(int iteration) {
+                @Override
+                public void reset(int iteration) {
 
-            }
-        };
-        eventsManager.addHandler(eventHandler);
-        workersLegHistogram = new LegHistogram(300);
-        nonWorkersLegHistogram = new LegHistogram(300);
-        workersEventsManager.addHandler(workersLegHistogram);
-        nonWorkersEventsManager.addHandler(nonWorkersLegHistogram);
+                }
+            };
+            eventsManager.addHandler(eventHandler);
+            workersLegHistogram = new LegHistogram(300);
+            nonWorkersLegHistogram = new LegHistogram(300);
+            workersEventsManager.addHandler(workersLegHistogram);
+            nonWorkersEventsManager.addHandler(nonWorkersLegHistogram);
+        }
     }
 
     @Override
     public void notifyIterationEnds(IterationEndsEvent event) {
-        workersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-workers.txt");
-        nonWorkersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-nonworkers.txt");
-        eventsManager.removeHandler(eventHandler);
+        if (event.getIteration() % 100 == 0) {
+            workersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-workers.txt");
+            nonWorkersLegHistogram.write(controlerIO.getIterationPath(event.getIteration()) + "/leghistogram-nonworkers.txt");
+            eventsManager.removeHandler(eventHandler);
+        }
     }
 
     interface Predicate {

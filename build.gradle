@@ -31,7 +31,7 @@ project ('matsim-playground') {
     }
 }
 
-def sample = 0.1
+def sample = 1.0
 def Rscript = '/usr/local/bin/Rscript'
 
 def truths = ['uncongested3', 'congested3']
